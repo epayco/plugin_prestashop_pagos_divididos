@@ -150,34 +150,48 @@
 </style>
 
 <form id="epayco_form" style="text-align: center;">
-    <script src="https://checkout.epayco.co/checkout.js"
-        class="epayco-button"
-        data-epayco-key="{$public_key}"
-        data-epayco-amount="{$total|escape:'htmlall':'UTF-8'}"
-        data-epayco-tax="{$iva|escape:'htmlall':'UTF-8'}"
-        data-epayco-tax-base="{$baseDevolucionIva|escape:'htmlall':'UTF-8'}"    
-        data-epayco-name="ORDEN DE COMPRA # {$refVenta|escape:'htmlall':'UTF-8'}"
-        data-epayco-description="ORDEN DE COMPRA # {$refVenta|escape:'htmlall':'UTF-8'}"
-        data-epayco-currency="{$currency|lower|escape:'htmlall':'UTF-8'}"
-        data-epayco-invoice="{$refVenta|escape:'htmlall':'UTF-8'}"
-        data-epayco-country="{$iso|lower|escape:'htmlall':'UTF-8'}"
-        data-epayco-test={$merchanttest}
-        data-epayco-extra1="{$extra1|escape:'htmlall':'UTF-8'}",
-        data-epayco-extra2="{$extra2|escape:'htmlall':'UTF-8'}",
-        data-epayco-extra3="",
-        data-epayco-external="{$external|escape:'htmlall':'UTF-8'}"
-        data-epayco-response="{$p_url_response|unescape: 'html' nofilter}" 
-        data-epayco-confirmation="{$p_url_confirmation|unescape: 'html' nofilter}"
-        data-epayco-email-billing="{$p_billing_email|escape:'htmlall':'UTF-8'}"
-        data-epayco-name-billing="{$p_billing_name|escape:'htmlall':'UTF-8'} {$p_billing_last_name|escape:'htmlall':'UTF-8'}"
-        data-epayco-address-billing="{$p_billing_address|escape:'htmlall':'UTF-8'}"
-        data-epayco-lang="es"
-        data-epayco-button="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/btn4.png"
-        data-epayco-mobilephone-billing="{$p_billing_phone|escape:'htmlall':'UTF-8'}"
-        data-epayco-autoClick="true"
-        >
-    </script>
-</form>
+     <a href="#" onclick="return theFunction();">
+        <img src="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/btn4.png" />
+    </a>
+    <script type="text/javascript">
+        var handler = ePayco.checkout.configure({
+            key: "{$public_key}",
+            test: "{$merchanttest}"
+        })
+        var data={
+            name: "{$descripcion}",
+            description: "{$descripcion}",
+            invoice: "{$refVenta|escape:'htmlall':'UTF-8'}",
+            currency: "{$currency|lower|escape:'htmlall':'UTF-8'}",
+            amount: "{$total|escape:'htmlall':'UTF-8'}",
+            tax: "{$iva|escape:'htmlall':'UTF-8'}",
+            tax_base: "{$baseDevolucionIva|escape:'htmlall':'UTF-8'}",
+            country: "{$iso|lower|escape:'htmlall':'UTF-8'}",
+            external: "{$external|escape:'htmlall':'UTF-8'}",
+            response: "{$p_url_response|unescape: 'html' nofilter}",
+            confirmation: "{$p_url_confirmation|unescape: 'html' nofilter}",
+            email_billing: "{$p_billing_email|escape:'htmlall':'UTF-8'}",
+            name_billing: "{$p_billing_name|escape:'htmlall':'UTF-8'} {$p_billing_last_name|escape:'htmlall':'UTF-8'}",
+            address_billing: "{$p_billing_address|escape:'htmlall':'UTF-8'}",
+            lang: "{$lang|escape:'htmlall':'UTF-8'}",
+            mobilephone_billing: "%s",
+            extra1: "{$extra1|escape:'htmlall':'UTF-8'}",
+            extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
+            split_app_id: "{$merchantid|escape:'htmlall':'UTF-8'}",
+            split_merchant_id: "{$merchantid|escape:'htmlall':'UTF-8'}",
+            split_type: "01",
+            split_primary_receiver: "{$merchantid|escape:'htmlall':'UTF-8'}",
+            split_primary_receiver_fee: "0",
+            splitpayment: "true",
+            split_rule: "multiple",
+            split_receivers:{$split_receivers}
+            }
+            //handler.open(data)
+            console.log(data)
+                function theFunction () {
+                //handler.open(data)
+                console.log(data)
+            }
 
     {literal} 
 <script>
