@@ -29,7 +29,7 @@
 </div>
 <p style="text-align: center;" class="epayco-title">
     <span class="animated-points">Cargando metodos de pago</span>
-   <br><small class="epayco-subtitle"> Si no se cargan automáticamente, de clic en el botón "Pagar con ePayco"</small>
+   <br><small class="epayco-subtitle"> Si no se cargan autom谩ticamente, de clic en el bot贸n "Pagar con ePayco"</small>
 </p>
 <style>
     .epayco-title{
@@ -148,6 +148,7 @@
         }
     }
 </style>
+<script type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
 
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return theFunction();">
@@ -174,7 +175,6 @@
             name_billing: "{$p_billing_name|escape:'htmlall':'UTF-8'} {$p_billing_last_name|escape:'htmlall':'UTF-8'}",
             address_billing: "{$p_billing_address|escape:'htmlall':'UTF-8'}",
             lang: "{$lang|escape:'htmlall':'UTF-8'}",
-            mobilephone_billing: "%s",
             extra1: "{$extra1|escape:'htmlall':'UTF-8'}",
             extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
             split_app_id: "{$merchantid|escape:'htmlall':'UTF-8'}",
@@ -184,20 +184,15 @@
             split_primary_receiver_fee: "0",
             splitpayment: "true",
             split_rule: "multiple",
-            split_receivers:{$split_receivers}
+            split_receivers:"{$split_receivers|@print_r}"
             }
-            //handler.open(data)
-            console.log(data)
+            handler.open(data)
                 function theFunction () {
-                //handler.open(data)
-                console.log(data)
+                handler.open(data)
             }
 
-    {literal} 
-<script>
-    
 </script>
-    {/literal}
+    
 {else}
 <p class="warning">
   {l s='Hemos notado un problema con tu orden, si crees que es un error puedes contactar a nuestro departamento de Soporte' mod='payco'}

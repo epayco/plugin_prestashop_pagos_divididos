@@ -600,17 +600,18 @@ class Payco extends PaymentModule
                     $receiver_feed = (100 - (int)($receiver['feed']));
                 }
                 $other = array(
-                    "id"=>$receiver['customer_id'],
-                    "total"=> strval( $receiver_total ),
-                    "iva"=> '',
-                    "base_iva"=> '',
-                    "fee" => strval( $receiver_feed )
+                    'id'=>$receiver['customer_id'],
+                    'total'=> strval( $receiver_total ),
+                    'iva'=> '0',
+                    'base_iva'=> '0',
+                    'fee' => strval( $receiver_feed )
                 );
                 array_push($vendorsArray, $other );
             }
-
+            $new_array = str_replace('"',"'",json_encode($vendorsArray));
+            
             $this->smarty->assign(array(
-              'split_receivers' => json_encode($vendorsArray),
+              'split_receivers' => strval( $new_array ),
               'this_path_bw' => $this->_path,
               'p_signature' => $p_signature,
               'total_to_pay' => Tools::displayPrice($value, $currence, false),
