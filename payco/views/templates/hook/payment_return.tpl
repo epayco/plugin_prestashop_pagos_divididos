@@ -148,7 +148,7 @@
         }
     }
 </style>
-<script type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
+<script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js?version=1640629099212"></script>
 
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return theFunction();">
