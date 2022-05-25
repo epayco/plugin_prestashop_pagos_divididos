@@ -148,8 +148,7 @@
         }
     }
 </style>
-<script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js?version=1640629099212"></script>
-
+<script type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return theFunction();">
         <img src="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/btn4.png" />
@@ -158,7 +157,26 @@
         var handler = ePayco.checkout.configure({
             key: "{$public_key}",
             test: "{$merchanttest}"
-        })
+        });
+        debugger
+
+        var js_array ="{$split_receivers|@print_r}";
+
+        const js_arrays = js_array.substring(0, js_array.length - 1);
+        var split_receiver =JSON.parse(js_arrays.replace(/'/g,'"'));
+
+            let split_receivers = [];
+            for(var jsa of split_receiver){
+                split_receivers.push({
+                    "id" :  jsa.id,
+                    "total": jsa.total,
+                    "iva" : jsa.iva,
+                    "base_iva": jsa.base_iva,
+                    "fee" : jsa.fee
+                });
+            }
+
+
         var data={
             name: "{$descripcion}",
             description: "{$descripcion}",
@@ -184,7 +202,7 @@
             split_primary_receiver_fee: "0",
             splitpayment: "true",
             split_rule: "multiple",
-            split_receivers:"{$split_receivers|@print_r}"
+            split_receivers: split_receivers
             }
             handler.open(data)
                 function theFunction () {

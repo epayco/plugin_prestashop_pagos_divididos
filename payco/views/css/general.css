@@ -1,0 +1,451 @@
+
+  .onpage {
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .color {
+    color: #3582b7 !important;
+  }
+  
+  .bgcolor {
+    background-color: #3582b7 !important;
+    border-color: #3582b7;
+    border-block-color: initial;
+  }
+  
+  .white_font {
+    color: white;
+  }
+  
+  .call_action {
+    border-radius: 0 0 5px 5px;
+    max-width: 100%;
+    height: auto;
+    margin-top: 15px;
+    line-height: 35px;
+    cursor: pointer;
+    padding: 5px 0;
+    width: 100% !important;
+  }
+  
+  .call_action img {
+    margin-top: -3px;
+  }
+  
+  .call_action:hover {
+    opacity: 0.9;
+  }
+  
+  .call_action h2 {
+    font-size: 18px;
+    text-align: center;
+    line-height: 35px;
+    margin: 0;
+  }
+  
+  .active {
+    color: white;
+  }
+  
+  .active:hover {
+    color: white;
+  }
+  
+  .active:active {
+    color: white;
+  }
+  
+  .active:visited {
+    color: white;
+  }
+  
+
+  .change {
+    width: 84%;
+    float: left;
+    height: 25px;
+    line-height: 25px;
+    padding-top: 10px;
+  }
+
+  #card_name:focus{
+    background-color:#fff;outline:0;border-color:#66afe9;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+            }
+  
+#document_number:focus{
+  background-color:#fff;outline:0;border-color:#66afe9;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+                      }
+    
+  #cardnumber:focus{
+    background-color:#fff;outline:0;border-color:#66afe9;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+            }
+  
+  #card_cvc:focus{
+    background-color:#fff;outline:0;border-color:#66afe9;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+            }
+#select-option:focus{
+  background-color:#fff;outline:0;border-color:#66afe9;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+            }
+  
+  .margin-bottom {
+    margin-bottom: 15px !important;
+  }
+
+  .nomargin {
+    margin: 0 !important;
+  }
+  .nomargin input {
+    margin: 0 !important;
+  }
+  .select-option {
+    height: 37px;
+     overflow: hidden;
+  }
+  
+  .centra {
+    text-align: center;
+  }
+  
+  
+  .selectize-input {
+    padding: 0 0.5em;
+  }
+  
+  .separate-B {
+    margin: 5em 0;
+  }
+  
+  img.home-icons {
+    height: 30px !important;
+    width: auto;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0.3em 0;
+  }
+  
+  .select-option label {
+    line-height: 35px;
+  }
+  
+  
+
+
+  .icon-select {
+    position: absolute;
+    font-size: 20px;
+    padding-left: 11px;
+    padding-top: 8px;
+    padding-right: 0;
+    line-height: 19px;
+  }
+
+  
+  /*credit card*/
+  
+  .input-form {
+    position: relative;
+    color: #aaa;
+  }
+  
+  .input-form .icon {
+    position: absolute;
+    height: 100%;
+    text-align: center;
+    width: 35px;
+    left: 0;
+    top: 0;
+    padding: 0;
+  }
+  
+  .input-form .icon .fa {
+    padding: 0;
+    position: relative;
+    margin: 0;
+    left: 0;
+    line-height: 40px;
+  }
+  
+  .input-form input {
+    height: 37px;
+    background: #fcfcfc;
+    border: 1px solid #e0e0e0;
+    text-indent: 38px;
+    font-size: 14px;
+    font-family: "Open Sans", sans-serif;
+    color: #383d43;
+    padding: 0px 2px;
+    margin: 0px 0px 13px 0px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .input-form input:focus {
+    border-color: #ebebeb;
+    background-color: #f4fbfb;
+    outline: none 0;
+  }
+  
+  .margin-t #email_user {
+    margin-top: 0.5em;
+  }
+    
+  .inputerror {
+    border: 1px solid;
+    border-radius: 4px;
+    border-color: #e74c3c !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2), 0 0 10px rgba(255, 0, 0, 0.2);
+  }
+  
+  .inputok {
+    border-color: #27ae60 !important;
+  }
+  
+  .normalinput input {
+    text-indent: 10px !important;
+  }
+  
+  .input-form .icon-input {
+    position: absolute;
+    padding-left: 25px;
+    padding-right: 0 !important;
+    line-height: 40px;
+    font-size: 18px;
+  }
+  
+  .input-form .fa {
+    position: absolute;
+    font-size: 18px !important;
+    line-height: 45px;
+    top: -3px;
+  }
+    
+  .select {
+    -webkit-appearance: none;
+    border: none;
+    background: white url(arrow.png) no-repeat right !important;
+    border-radius: 4px;
+    font-size: 14px;
+    height: 38px;
+    width: 100%;
+  }
+  
+  .select:focus {
+    outline: 0;
+  }
+  
+  .bordergray {
+    margin-bottom: -15px;
+    border: 1px solid #e0e0e0;
+  }
+    .centered {
+    margin: 1em 0 2em;
+    height: auto;
+    width: 400px;
+    transition: 200ms ease-in-out;
+    z-index: 2;
+  }
+  
+  
+  .onpage .centered {
+    max-width: 100%;
+  }
+  .onpage .select-option {
+    margin-left: 3%;
+    margin-right: 3%;
+    border-radius: 5px;
+  }
+  .onpage .select-option label {
+    margin: 0;
+    font-weight: 600;
+    padding-left: 10px;
+  }
+  
+  .onpage .select-option .iconinfo {
+    margin: 0;
+    padding-right: 10px;
+  }
+  
+  .onpage .input-form input {
+    width: 93%;
+    margin-left: 3%;
+    margin-right: 3%;
+  }
+  .onpage .nombre-comercio {
+    width: 54%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #666;
+  }
+  .onpage .nombre-comercio a {
+    font-size: small;
+  }
+  .onpage .call_action {
+    width: 100%;
+  }
+  .onpage .vencimiento {
+    width: 45% !important;
+  }
+  .onpage .cvv_style {
+    width: 23% !important;
+  }
+
+  .onpage .marginsrl {
+    margin-right: 3%;
+    margin-left: 3%;
+  }
+  .onpage .selectcuotas {
+    width: 30% !important;
+  }
+  .onpage .inputdoc {
+    width: 61% !important;
+  }
+  .onpage .inputdoc input {
+    width: 100% !important;
+  }
+  .onpage .text-width {
+    width: 90% !important;
+    margin-left: 5% !important;
+  }
+
+  .iconinfo {
+    float: right;
+    line-height: 40px;
+    margin-right: 10px;
+    font-size: 18px;
+  }
+  
+  
+  .pointer {
+    cursor: pointer;
+  }
+  
+  .cvv_style {
+    width: 90px;
+    float: left;
+  }
+  
+  .fullwidth {
+    width: 100% !important;
+  }
+  
+  
+  .fa-check {
+    color: #27ae60;
+  }
+  
+  .fa-exclamation-circle {
+    color: #e74c3c;
+  }
+  
+  .fa-pause {
+    color: #f39c12;
+  }
+  
+  .fa-meh-o {
+    color: #e74c3c;
+  }
+  
+  .btnshow {
+    line-height: 40px;
+    margin-right: 15px;
+    float: right;
+  }
+  
+  #day_select option:first-child {
+    color: #e0e0e0;
+  }
+  
+  .selectize-control {
+    height: 40px !important;
+  }
+  
+  .selectize-input > * {
+    font-size: 14px;
+  }
+  
+  .capitalice {
+    text-transform: capitalize;
+  }
+  
+  .iconpse {
+    position: absolute;
+    margin-top: -48px;
+    margin-bottom: 10px;
+    float: right;
+    right: 15px;
+  }
+    
+  .selectize-dropdown [data-selectable]:hover {
+    color: #333;
+  }
+
+  
+  .margin-top-20 {
+    margin-top: 20px !important;
+  }
+
+  .dropzone {
+    border: 2px dashed #337ab7;
+    border-radius: 5px;
+    background: white;
+  }
+  .relative {
+    position: relative;
+  }
+  
+  .logo-entity {
+    width: auto;
+    margin: 3em auto 2em;
+    height: 40px;
+    text-align: center;
+  }
+  
+  .logo-entity img {
+    height: 100%;
+    width: auto;
+  }
+  
+.loadshield2 {
+  font-size: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 40px;
+  margin-top: -20px;
+  /* Half the height */
+  margin-left: -10px;
+  /* Half the width */
+  color: gray;
+}
+
+
+.form-container .field-container:nth-of-type(2) {
+    grid-area: number;
+}
+
+.field-container {
+    position: relative;
+}
+
+.ccicon {
+    height: 28px;
+    position: absolute;
+    right: 18px;
+    top: calc(50% - 20px);
+    width: 55px;
+}
+
+#generatecard{
+    cursor: pointer;
+    float: right;
+    font-size: 12px;
+    color: #fff;
+    padding: 2px 4px;
+    background-color: #909090;
+    border-radius: 4px;
+    cursor: pointer;
+    float:right;
+}
+
