@@ -35,7 +35,7 @@
 				<h4>tipo</h4>
 				<select name="typefeed_">
 					<option value="01">fijo</option>
-					<option value="02">porcentaje</option>
+
 				</select>
 				</div>
 				<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
