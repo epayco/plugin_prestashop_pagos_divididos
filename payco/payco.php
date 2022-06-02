@@ -509,7 +509,7 @@ class Payco extends PaymentModule
         $modalOption->setCallToActionText($this->l(''))
                       ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
                       ->setAdditionalInformation($this->context->smarty->fetch('module:payco/views/templates/hook/payment_onpage.tpl'))
-                      ->setLogo("https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/cms/btn_prestashop.png");
+                      ->setLogo("https://multimedia.epayco.co/epayco-landing/btns/Boton-epayco-color1.png");
         $payment_options = [
            $modalOption,
         ];
@@ -606,11 +606,12 @@ class Payco extends PaymentModule
             /** @var array $result */
             $receivers = $db->executeS($request);
             $vendorsArray = array();
+            $amoutnTotal = $value / count($receivers);
             foreach ($receivers as $receiver)
             {
                 if($receiver['typefeed'] == "01"){
-                    $receiver_total = (int)($receiver['feed']);
-                    $receiver_feed = ($value - (int)($receiver['feed']));
+                    $receiver_total = $amoutnTotal;
+                    $receiver_feed = ($amoutnTotal - (int)($receiver['feed']));
                 }else{
                     $porcentaje_fee_value = ((100 - (int)($receiver['feed']))*$value)/100;
                     $receiver_total = $value-$porcentaje_fee_value;
@@ -618,7 +619,7 @@ class Payco extends PaymentModule
                 }
                 $other = array(
                     'id'=>$receiver['customer_id'],
-                    'total'=> strval( $value ),
+                    'total'=> strval( $amoutnTotal ),
                     'iva'=> '0',
                     'base_iva'=> '0',
                     'fee' => strval( $receiver_feed )
@@ -626,7 +627,6 @@ class Payco extends PaymentModule
                 array_push($vendorsArray, $other );
             }
             $new_array = str_replace('"',"'",json_encode($vendorsArray));
-
             $this->smarty->assign(array(
               'split_receivers' => strval( $new_array ),
               'this_path_bw' => $this->_path,
