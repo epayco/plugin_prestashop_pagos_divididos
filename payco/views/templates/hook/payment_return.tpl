@@ -151,7 +151,7 @@
 <script type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return theFunction();">
-        <img src="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/btn4.png" />
+        <img src="https://multimedia.epayco.co/epayco-landing/btns/Boton-epayco-color1.png" />
     </a>
     <script type="text/javascript">
         var handler = ePayco.checkout.configure({
