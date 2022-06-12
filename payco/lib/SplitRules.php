@@ -199,7 +199,7 @@ class SplitRules extends ObjectModel{
 	public static function setup()
 	{
 		$sql = array();
-		$sql[] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'payco_split` (
+		$sql[0] = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'payco_split` (
 		    `id` int(11) NOT NULL AUTO_INCREMENT,
 		    `customer_id` INT(11) NULL,
 		    `typefeed` TEXT NULL,
@@ -207,6 +207,20 @@ class SplitRules extends ObjectModel{
 		    `avtive` int(3) NULL,
 		    PRIMARY KEY  (`id`)
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+        $sqlQuery = 'SELECT `position`+1
+				FROM `' . _DB_PREFIX_ . 'feature`
+				    ORDER BY position DESC';
+        $_POST_position = Db::getInstance()->getValue($sqlQuery);
+        Db::getInstance()->execute('INSERT INTO `' . _DB_PREFIX_ . 'feature` ( `position`)
+            VALUES ('. (int) $_POST_position . ')');
+        $sqlQuery = 'SELECT MAX(`id_feature`)
+				FROM `' . _DB_PREFIX_ . 'feature`';
+        $feature_id = Db::getInstance()->getValue($sqlQuery);
+        $sql[2] = 'INSERT INTO `' . _DB_PREFIX_ . 'feature_lang` ( `id_feature`,`id_lang`,`name`)
+            VALUES ('. (int) $feature_id . ', '. 1 . ', '. '"ePayco receiver"' . '),
+                   ('. (int) $feature_id . ', '. 2 . ', '. '"ePayco receiver"' . ')';
+        $sql[3] = 'INSERT INTO `' . _DB_PREFIX_ . 'feature_shop` ( `id_feature`, `id_shop`)
+            VALUES ('. (int) $feature_id . ','. 1 . ')';
 
 		foreach ($sql as $query) {
 		    if (Db::getInstance()->execute($query) == false) {
@@ -220,9 +234,38 @@ class SplitRules extends ObjectModel{
 	 * @return true or false
 	 */
 	public static function remove(){
-		$sql = array(
-				'DROP TABLE IF EXISTS '._DB_PREFIX_.'payco_split'
-		);
+		$sql = array();
+        $sql[0] ='DROP TABLE IF EXISTS '._DB_PREFIX_.'payco_split';
+
+        $sql_ = '
+			SELECT `id_feature`
+			FROM `' . _DB_PREFIX_ . 'feature_lang`
+			WHERE `name` = ' . '"ePayco receiver"'
+        ;
+
+        $feature_id = Db::getInstance()->getValue($sql_);
+        $sql[1] = '
+			DELETE
+				`' . _DB_PREFIX_ . 'feature_value_lang`
+			FROM
+				`' . _DB_PREFIX_ . 'feature_value_lang`
+				JOIN `' . _DB_PREFIX_ . 'feature_value`
+					ON (`' . _DB_PREFIX_ . 'feature_value_lang`.id_feature_value = `' . _DB_PREFIX_ . 'feature_value`.id_feature_value)
+			WHERE
+				`' . _DB_PREFIX_ . 'feature_value`.`id_feature` = ' . (int) $feature_id . '
+		';
+        $sql[2] = '
+			DELETE FROM `' . _DB_PREFIX_ . 'feature_value`
+			WHERE `id_feature` = ' . (int)$feature_id;
+        $sql[3] = '
+			DELETE FROM `' . _DB_PREFIX_ . 'feature_shop`
+			WHERE `id_feature` = ' . (int)$feature_id;
+        $sql[4] = '
+			DELETE FROM `' . _DB_PREFIX_ . 'feature`
+			WHERE `id_feature` = ' . (int)$feature_id;
+        $sql[5] = '
+			DELETE FROM `' . _DB_PREFIX_ . 'feature_lang`
+			WHERE `id_feature` = ' . (int)$feature_id;
 
 		foreach ($sql as $query) {
 		    if (Db::getInstance()->execute($query) == false) {
