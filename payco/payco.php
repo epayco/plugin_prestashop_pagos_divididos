@@ -538,10 +538,38 @@ class Payco extends PaymentModule
         if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR')){
              $this->smarty->assign('status', 'ok');
         }
-           
+
         
           $extra1 = $order->id_cart;
           $extra2 = $order->id;
+
+          $sql =
+            '
+			SELECT `id_feature`
+			FROM `' . _DB_PREFIX_ . 'feature_lang`
+			WHERE `name` = ' . '"ePayco receiver"'
+        ;
+        $feature_id = Db::getInstance()->getValue($sql);
+        $products_info= Db::getInstance()->executeS('
+                
+            SELECT DISTINCT psod.`product_id`,      
+                   psod.`product_quantity`,
+                   psod.`total_price_tax_excl` AS "product_price",
+                   psod.`total_price_tax_incl` AS "product_tax",
+                   psvl.`value` as "customer_id",
+                   psps.`feed` as "fee value", 
+                   psps.`typefeed` as "split type"
+            FROM `' . _DB_PREFIX_ . 'order_detail` psod 
+                LEFT JOIN `' . _DB_PREFIX_ . 'feature_product` psfp 
+                    ON (psod.`product_id` = psfp.`id_product`)
+                LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` psvl 
+                    ON (psfp.`id_feature_value` = psvl.`id_feature_value`) 
+                INNER JOIN `' . _DB_PREFIX_ . 'payco_split` psps 
+                    ON (psvl.`value` = psps.`customer_id`) 
+            WHERE psod.id_order = ' . (int) $extra1. ' AND psfp.id_feature = '.(int)$feature_id
+            )
+        ;
+
           $emailComprador = $this->context->customer->email;
           $valorBaseDevolucion = $order->total_paid_tax_excl;
           $iva = $value - $valorBaseDevolucion;
@@ -601,17 +629,15 @@ class Payco extends PaymentModule
             $p_url_response=Context::getContext()->link->getModuleLink('payco', 'response');
             $p_url_confirmation=Context::getContext()->link->getModuleLink('payco', 'confirmation');
             $lang = $this->context->language->language_code;
-            $db = Db::getInstance();
-            $request = 'SELECT * FROM `'.SplitRules::$definition['table'].'`';
-            /** @var array $result */
-            $receivers = $db->executeS($request);
+
             $vendorsArray = array();
-            $amoutnTotal = $value / count($receivers);
-            foreach ($receivers as $receiver)
+            foreach ($products_info as $receiver)
             {
-                if($receiver['typefeed'] == "01"){
-                    $receiver_total = $amoutnTotal;
-                    $receiver_feed = ($amoutnTotal - (int)($receiver['feed']));
+                if($receiver['split type'] == "01"){
+                    $receiver_total_tax =  floatval($receiver['product_tax']);
+                    $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
+                    $receiver_total =  floatval($receiver['product_price']);
+                    $receiver_feed = (floatval($receiver['product_price']) - floatval($receiver['fee value']* intval($receiver['product_quantity'])));
                 }else{
                     $porcentaje_fee_value = ((100 - (int)($receiver['feed']))*$value)/100;
                     $receiver_total = $value-$porcentaje_fee_value;
@@ -619,14 +645,15 @@ class Payco extends PaymentModule
                 }
                 $other = array(
                     'id'=>$receiver['customer_id'],
-                    'total'=> strval( $amoutnTotal ),
-                    'iva'=> '0',
-                    'base_iva'=> '0',
+                    'total'=> strval( $receiver_total_tax ),
+                    'iva'=> strval( $receiver_tax ),
+                    'base_iva'=>  strval( $receiver_total ),
                     'fee' => strval( $receiver_feed )
                 );
                 array_push($vendorsArray, $other );
             }
             $new_array = str_replace('"',"'",json_encode($vendorsArray));
+
             $this->smarty->assign(array(
               'split_receivers' => strval( $new_array ),
               'this_path_bw' => $this->_path,
@@ -719,7 +746,7 @@ class Payco extends PaymentModule
                 $ref_payco=$_REQUEST["ref_payco"];
             }
             if($url==""){
-                $url = 'https://secure.epayco.co/validation/v1/reference/'.$ref_payco;
+                $url = 'https://secure.epayco.io/validation/v1/reference/'.$ref_payco;
             }
 
         }

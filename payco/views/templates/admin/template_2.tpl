@@ -34,7 +34,7 @@
                 <th scope="col">#</th>
                 <th scope="col">customer_id</th>
                 <th scope="col">tipo de split</th>
-                <th scope="col">fee</th>
+                <th scope="col">valor</th>
                 </tr>
             </thead>
             {foreach from=$team_record key=team item=record}
