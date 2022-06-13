@@ -31,10 +31,11 @@ class SplitRules extends ObjectModel{
 	 */
 	public static function create($customer_id,$feed,$typefeed)
 	{
-		if($customer_id == "" && $fee =="" ){
+		if($customer_id == "" && $feed =="" ){
 			echo 0;
 			die();
 		}else{
+
 			if($customer_id ==""){
 				echo 0;
 				die();
@@ -44,40 +45,56 @@ class SplitRules extends ObjectModel{
 				echo 0;
 				die();
 			}
-				try {
-					// $db = Db::getInstance();
-					// $result = $db->getRow('
-					// SELECT `customer_id` FROM `'.SplitRules::$definition['table'].'`
-					// WHERE `customer_id` = "'.$customer_id.'"');
-					$db = Db::getInstance();
-						$request = 'SELECT * FROM `'.SplitRules::$definition['table'].'`WHERE `customer_id` = "'.$customer_id.'"';
-						/** @var array $result */
-						$result2 = $db->executeS($request);
-						$count_ =count($result2);
-					if ($count_ > 0){
-						echo 1;
-						die();
-					}else{
-					$result_ = $db->execute('
+
+		try {
+			$db = Db::getInstance();
+				$request = 'SELECT * FROM `'.SplitRules::$definition['table'].'`WHERE `customer_id` = "'.$customer_id.'"';
+				/** @var array $result */
+				$result2 = $db->executeS($request);
+				$count_ =count($result2);
+			if ($count_ > 0){
+				echo 1;
+				die();
+			}else{
+				$result_ = $db->execute('
 					INSERT INTO `'._DB_PREFIX_.'payco_split`
 					( `customer_id`, `typefeed`, `feed`, `avtive`)
 					VALUES
-					("'.intval($customer_id).'","'.$typefeed.'","'.$feed.'","'.intval('1').'")');
-					if($result_){
-						echo 1;
-						die();
-						}else{
-							echo 0;
-							die();
-						}
-					}
-				return $result;
-				} catch (\Throwable $th) {
-					echo $th;
+					("'.intval($customer_id).'","'.$typefeed.'","'.$feed.'","'.intval('1').'")'
+				);
+				if($result_){
+					$sql = 'SELECT `id_feature`
+							FROM `' . _DB_PREFIX_ . 'feature_lang`
+							WHERE `name` = ' . '"ePayco receiver"';
+					$feature_id = Db::getInstance()->getValue($sql);
+
+					Db::getInstance()->execute(
+						'INSERT INTO `' . _DB_PREFIX_ . 'feature_value` ( `id_feature`, `custom`)
+							VALUES ('. (int) $feature_id . ', '. 0 . ')'
+					);
+					$sql = 'SELECT MAX(`id_feature_value`)
+							FROM `' . _DB_PREFIX_ . 'feature_value`';
+						$id_feature_value = Db::getInstance()->getValue($sql);
+					Db::getInstance()->execute(
+						'INSERT INTO `' . _DB_PREFIX_ . 'feature_value_lang` ( `id_feature_value`, `id_lang`, `value`)
+							VALUES ('. (int) $id_feature_value . ', '. 1 . ', '. $customer_id . '),
+									('. (int) $id_feature_value . ', '. 2 . ', '. $customer_id . ')'
+					);
+					echo 1;
 					die();
-				}
-			
-			
+
+					}else{
+						echo 0;
+						die();
+					}
+			}
+
+			return $result;
+
+			} catch (\Throwable $th) {
+				echo $th;
+				die();
+			}
 			
 		}
 	}
@@ -85,7 +102,6 @@ class SplitRules extends ObjectModel{
 
 	public static function SplitCustomerUpdate($customer_id,$feed,$typefeed)
 	{
-
 		if($customer_id == "" && $feed =="" ){
 			echo 0;
 			die();
@@ -99,34 +115,38 @@ class SplitRules extends ObjectModel{
 				echo 0;
 				die();
 			}
-				try {
-				
-						$db = Db::getInstance();
-						$request = 'SELECT * FROM `'.SplitRules::$definition['table'].'`WHERE `customer_id` = "'.$customer_id.'"';
-						/** @var array $result */
-						$result2 = $db->executeS($request);
-						$count_ =count($result2);
-						if ($count_ > 0){
-						
-							$result_ = $db->update('payco_split', 
-							array(
-								'typefeed'=>$typefeed,
-								'feed' => $feed
-							), 'customer_id = '.$customer_id );
-					
-							if($result_){
-								echo 1;
-								die();
-								}
-						}else{
-							echo 0;
-							die();
-						}
-				return $result;
-				} catch (\Throwable $th) {
-					echo $th;
+
+		try {
+			$db = Db::getInstance();
+			$request = 'SELECT * FROM `'.SplitRules::$definition['table'].'`WHERE `customer_id` = "'.$customer_id.'"';
+			/** @var array $result */
+			$result2 = $db->executeS($request);
+			$count_ =count($result2);
+			if ($count_ > 0){
+			
+				$result_ = $db->update('payco_split', 
+				array(
+					'typefeed'=>$typefeed,
+					'feed' => $feed
+				), 'customer_id = '.$customer_id );
+		
+				if($result_){
+					echo 1;
 					die();
 				}
+
+			}else{
+				echo 0;
+				die();
+			}
+
+		return $result;
+
+		} catch (\Throwable $th) {
+			echo $th;
+			die();
+		}
+
 		}
 	}
 
@@ -138,16 +158,55 @@ class SplitRules extends ObjectModel{
 	public static function deleteSplitRule($customer_id,$id_)
 	{
 		try {
-				$db = Db::getInstance();
-				$result_ = $db->execute('
-				DELETE FROM `'._DB_PREFIX_.'payco_split`
-				WHERE id = "'.intval($id_).'"');
-				} catch (\Throwable $th) {
-					//throw $th;
-				}
+			$sql = array();
 
-		var_dump($result2);
-		die();
+			$db = Db::getInstance();
+			$result_ = $db->execute('
+			DELETE FROM `'._DB_PREFIX_.'payco_split`
+			WHERE id = "'.intval($id_).'"');
+			$sql_ = '
+				SELECT `id_feature`
+				FROM `' . _DB_PREFIX_ . 'feature_lang`
+				WHERE `name` = ' . '"ePayco receiver"';
+
+			$feature_id = Db::getInstance()->getValue($sql_);
+
+			$sqlRequest = '
+					SELECT `id_feature_value`
+					FROM `' . _DB_PREFIX_ . 'feature_value_lang`
+					WHERE `value` = ' . $customer_id;
+
+			$id_feature_value = Db::getInstance()->getValue($sqlRequest);
+
+			$sql[0] = '
+				DELETE
+					`' . _DB_PREFIX_ . 'feature_value_lang`
+				FROM
+					`' . _DB_PREFIX_ . 'feature_value_lang`
+					JOIN `' . _DB_PREFIX_ . 'feature_value`
+						ON (`' . _DB_PREFIX_ . 'feature_value_lang`.id_feature_value = `' . _DB_PREFIX_ . 'feature_value`.id_feature_value)
+				WHERE
+					`' . _DB_PREFIX_ . 'feature_value`.`id_feature` = ' . (int) $feature_id . '
+					AND `' . _DB_PREFIX_ . 'feature_value`.`id_feature_value` = ' . (int)$id_feature_value . '
+			';
+			$sql[1] = '
+				DELETE FROM `' . _DB_PREFIX_ . 'feature_value`
+				WHERE `id_feature` = ' . (int)$feature_id . ' AND  `id_feature_value` = '.(int)$id_feature_value;
+				foreach ($sql as $query) {
+					if (Db::getInstance()->execute($query) == false) {
+						return false;
+					}
+				}
+		} catch (\Throwable $th) {
+			throw $th;
+		}
+
+        if($result_){
+           echo "1";
+        }else{
+            echo "0";
+        }
+        exit();
 		
 	}
 
