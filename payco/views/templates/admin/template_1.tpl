@@ -28,114 +28,113 @@
 		
 	<form action="{$setup_dir|escape:'html':'UTF-8'}" method="POST" id="myform">	
 		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
-					<h4>customer Id</h4>
-					<input type="text" name="customer_id" id="customer_id">
-				</div>
-				<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
-				<h4>tipo</h4>
-				<select name="typefeed">
-					<option value="01">fijo</option>
-				</select>
-				</div>
-				<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
-					<h4>Valor</h4>
-					<input type="text" name="feed" id="feed">
-				</div>
-				<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
-				<br>	
-					<input type="submit" class="btn btn-primary" id="create-account-btn" value="Create an account now!">
-				</div>
-				</form>
-				<div id="url" hidden="true">{$setup_dir|escape:'html':'UTF-8'}</div>
-				
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
-				<script type="text/javascript">
-				$(document).ready( function(){
-										
-					const $checkout_form = $( '#myform' );
-					    $checkout_form.on('submit', function (event) {  
-					    event.preventDefault();
-						$(':input[type="submit"]').prop('disabled', true);
-					debugger
+			<h4>customer Id</h4>
+			<input type="text" name="customer_id" id="customer_id">
+		</div>
+		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
+			<h4>tipo</h4>
+			<select name="typefeed">
+				<option value="01">fijo</option>
+			</select>
+		</div>
+		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
+			<h4>Valor</h4>
+			<input type="text" name="feed" id="feed">
+		</div>
+		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
+		<br>	
+			<input type="submit" class="btn btn-primary" id="create-account-btn" value="Create an account now!">
+		</div>
+		</form>
+			<div id="url" hidden="true">{$setup_dir|escape:'html':'UTF-8'}</div>
+			
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
+			<script type="text/javascript">
+			$(document).ready( function(){
+				const $checkout_form = $( '#myform' );
+				$checkout_form.on('submit', function (event) {  
+				event.preventDefault();
+				$(':input[type="submit"]').prop('disabled', true);
 
-					    var url=$("#url").text();
-					    var customer_id = document.getElementById('customer_id').value.replace(/[ -]/g, "");
-					    var feed = document.getElementById('feed').value.replace(/[ -]/g, "");
-						var typefeed=  $('select[name="typefeed"] option:selected').val();
-						var data={
-					        "customer_id":customer_id,
-					        "feed":feed,
-							"typefeed":typefeed
-					 	};
-							$.ajax({
-								type:"POST",
-								url:url,
-								data:data,
-								beforeSend:function(){},
-								success: function(datos){
-									debugger
-									if(datos =="0"){
-										alertarError()
-									$(':input[type="submit"]').prop('disabled', false);
-									 
-									}else{
-										alertar()
-										$(':input[type="submit"]').prop('disabled', false);
-										$checkout_form[0].reset();
-									}
-								
-								}
-								});
-							});	
-						});
-					function alertar(){
-						document.getElementsByName('chec_')[0].classList.add('alert-success')
-						document.getElementsByName('guardado')[0].style.visibility = 'visible';
-						$("#snoAlertBox").fadeIn();
-  						 closeSnoAlertBox();
-					}
-					function closeSnoAlertBox() {
+				var url=$("#url").text();
+				var customer_id = document.getElementById('customer_id').value.replace(/[ -]/g, "");
+				var feed = document.getElementById('feed').value.replace(/[ -]/g, "");
+				var typefeed=  $('select[name="typefeed"] option:selected').val();
+				var data={
+					"customer_id":customer_id,
+					"feed":feed,
+					"typefeed":typefeed
+				};
+					$.ajax({
+						type:"POST",
+						url:url,
+						data:data
+						})
+						.done(function(datos){
+							if(datos =="0"){
+								alertarError()
+								$(':input[type="submit"]').prop('disabled', false);
+
+							}else{
+								alertar()
+								$(':input[type="submit"]').prop('disabled', false);
+								$checkout_form[0].reset();
+							}
+						})
+						.fail(function(error){
+							alertar()
+							$(':input[type="submit"]').prop('disabled', false);
+							$checkout_form[0].reset();
+						})
+					;
+					});	
+				});
+				function alertar(){
+					document.getElementsByName('chec_')[0].classList.add('alert-success')
+					document.getElementsByName('guardado')[0].style.visibility = 'visible';
+					$("#snoAlertBox").fadeIn();
 					window.setTimeout(function() {
 						$("#snoAlertBox").fadeOut(300)
-						}, 2000);
+					}, 2000);
 					window.setTimeout(function() {
 						document.getElementsByName('chec_')[0].classList.remove('alert-success')
 						document.getElementsByName('guardado')[0].style.visibility = 'hidden';
 						location.reload();
-						}, 3000);	
-					};
+					}, 3000);
+				}
 
-					function alertarError(){
-						document.getElementsByName('chec_')[0].classList.add('alert-danger')
-						document.getElementsByName('guardado')[0].style.visibility = 'hidden';
-						$("#snoAlertBox").fadeIn();
-  						 closeSnoAlertBoxError();
-					}
-					function closeSnoAlertBoxError() {
-					window.setTimeout(function() {
-						$("#snoAlertBox").fadeOut(300000)
-						}, 2000);
-					window.setTimeout(function() {
-						document.getElementsByName('chec_')[0].classList.remove('alert-danger')
-						document.getElementsByName('guardado')[0].style.visibility = 'hidden';
-						}, 3000);	
-					};
 
-				</script>
+				function alertarError(){
+					document.getElementsByName('chec_')[0].classList.add('alert-danger')
+					document.getElementsByName('guardado')[0].style.visibility = 'hidden';
+					$("#snoAlertBox").fadeIn();
+						closeSnoAlertBoxError();
+				}
+				function closeSnoAlertBoxError() {
+				window.setTimeout(function() {
+					$("#snoAlertBox").fadeOut(300000)
+					}, 2000);
+				window.setTimeout(function() {
+					document.getElementsByName('chec_')[0].classList.remove('alert-danger')
+					document.getElementsByName('guardado')[0].style.visibility = 'hidden';
+					}, 3000);	
+				};
+
+			</script>
+		</div>
+		<hr />
+		<div class="payco-content">
+			<div class="row">
+				<div class="col-md-4">
+					<h5>{l s=''}</h5>
+				</div>
+				<div class="col-md-2 alert" id"chec_" name="chec_" data-alert="alert">
+					<h5 name="guardado" style="visibility: hidden;">{l s='Guardado!' mod='payco'}</h5>
+				</div>
+				<div class="col-md-4">
+					<h5>{l s='' mod='payco'}</h5>
+				</div>
+				</div>
 			</div>
-	<hr />
-	<div class="payco-content">
-				<div class="row">
-					<div class="col-md-4">
-						<h5>{l s=''}</h5>
-					</div>
-					<div class="col-md-2 alert" id"chec_" name="chec_" data-alert="alert">
-						<h5 name="guardado" style="visibility: hidden;">{l s='Guardado!' mod='payco'}</h5>
-					</div>
-					<div class="col-md-4">
-						<h5>{l s='' mod='payco'}</h5>
-					</div>
-				</div>
-				</div>
 	
-</div>
+		</div>
