@@ -28,7 +28,7 @@
         <div class="payco-content">
             <div class="row">
                 <table class="table">
-            <caption>List of Customers</caption>
+            <caption></caption>
             <thead>
                 <tr>
                 <th scope="col">#</th>
