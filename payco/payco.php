@@ -566,7 +566,7 @@ class Payco extends PaymentModule
                     ON (psfp.`id_feature_value` = psvl.`id_feature_value`) 
                 INNER JOIN `' . _DB_PREFIX_ . 'payco_split` psps 
                     ON (psvl.`value` = psps.`customer_id`) 
-            WHERE psod.id_order = ' . (int) $extra1. ' AND psfp.id_feature = '.(int)$feature_id
+            WHERE psod.id_order = ' . (int) $extra2. ' AND psfp.id_feature = '.(int)$feature_id
             )
         ;
 
