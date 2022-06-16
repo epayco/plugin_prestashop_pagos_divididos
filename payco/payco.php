@@ -637,7 +637,7 @@ class Payco extends PaymentModule
                     $receiver_total_tax =  floatval($receiver['product_tax']);
                     $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
                     $receiver_total =  floatval($receiver['product_price']);
-                    $receiver_feed = (floatval($receiver['product_price']) - floatval($receiver['fee value']* intval($receiver['product_quantity'])));
+                    $receiver_feed = (floatval($receiver['fee value']));
                 }else{
                     $porcentaje_fee_value = ((100 - (int)($receiver['feed']))*$value)/100;
                     $receiver_total = $value-$porcentaje_fee_value;
