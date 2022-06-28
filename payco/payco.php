@@ -605,7 +605,7 @@ class Payco extends PaymentModule
             $productos = Db::getInstance()->executeS('
 			SELECT id_product FROM `' . _DB_PREFIX_ . 'cart_product`
 			WHERE `id_cart` = ' . (int) $extra1);
-
+              $idproduct_without_split = '';
               foreach ($productos as $producto)
               {
                   // Your product id
@@ -619,8 +619,13 @@ class Payco extends PaymentModule
                       // Get product name
                       $descripcion = $descripcion.$product->name.', ';
                   }
+                  $products_ids = array_column($products_info, 'product_id');
+                  if (!in_array($id_product, $products_ids)) {
+                      $idproduct_without_split = $idproduct_without_split.$id_product.', ';
+                  }
               }
               $descripcion = substr($descripcion, 0,-2);
+              $idproduct_without_split = substr($idproduct_without_split, 0,-2);
 
              if (!EpaycoOrder::ifExist($order->id)) {
                 EpaycoOrder::create($order->id,1);
@@ -652,6 +657,29 @@ class Payco extends PaymentModule
                 );
                 array_push($vendorsArray, $other );
             }
+              $sql_query = '
+                    SELECT DISTINCT psod.`product_id`,      
+                           psod.`product_quantity`,
+                           psod.`total_price_tax_excl` AS "product_price",
+                           psod.`total_price_tax_incl` AS "product_tax"
+                    FROM `' . _DB_PREFIX_ . 'order_detail` psod 
+                    WHERE psod.id_order = ' . (int)$extra2
+                  . ' AND psod.product_id  IN (' . $idproduct_without_split.')';
+              $vendorsArraysWhithoutSplit= Db::getInstance()->executeS($sql_query);
+              foreach ($vendorsArraysWhithoutSplit as $receiver)
+              {
+                  $receiver_total_tax =  floatval($receiver['product_tax']);
+                  $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
+                  $receiver_total =  floatval($receiver['product_price']);
+                  $receiver_feed = floatval($receiver['product_price']);
+                  $vendorsArray[] = [
+                      'id' => trim($this->p_cust_id_cliente),
+                      'total' => strval($receiver_total_tax),
+                      'iva' => strval($receiver_tax),
+                      'base_iva' => strval($receiver_total),
+                      'fee' => strval($receiver_feed)
+                  ];
+              }
             $new_array = str_replace('"',"'",json_encode($vendorsArray));
 
             $this->smarty->assign(array(
