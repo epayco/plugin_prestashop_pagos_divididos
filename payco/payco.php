@@ -682,7 +682,7 @@ class Payco extends PaymentModule
                       'total' => strval($receiver_total_tax),
                       'iva' => strval($receiver_tax),
                       'base_iva' => strval($receiver_total),
-                      'fee' => strval($receiver_feed)
+                      'fee' => strval(0)
                   ];
                   }
                   
