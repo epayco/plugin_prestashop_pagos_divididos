@@ -569,6 +569,10 @@ class Payco extends PaymentModule
             WHERE psod.id_order = ' . (int) $extra2. ' AND psfp.id_feature = '.(int)$feature_id
             )
         ;
+        $split = false;
+            if(count($products_info)>0){
+                $split = true;
+            }
 
           $emailComprador = $this->context->customer->email;
           $valorBaseDevolucion = $order->total_paid_tax_excl;
@@ -600,7 +604,7 @@ class Payco extends PaymentModule
             }else{
               $test="false";
             }
-
+            
             $descripcion = '';
             $productos = Db::getInstance()->executeS('
 			SELECT id_product FROM `' . _DB_PREFIX_ . 'cart_product`
@@ -672,15 +676,25 @@ class Payco extends PaymentModule
                   $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
                   $receiver_total =  floatval($receiver['product_price']);
                   $receiver_feed = floatval($receiver['product_price']);
-                  $vendorsArray[] = [
+                  if(count($vendorsArray)>0 ){
+                      $vendorsArray[] = [
                       'id' => trim($this->p_cust_id_cliente),
                       'total' => strval($receiver_total_tax),
                       'iva' => strval($receiver_tax),
                       'base_iva' => strval($receiver_total),
-                      'fee' => strval($receiver_feed)
+                      'fee' => strval(0)
                   ];
+                  }
+                  
               }
-            $new_array = str_replace('"',"'",json_encode($vendorsArray));
+              
+                 if($split){
+                  $new_array = str_replace('"',"'",json_encode($vendorsArray));
+              }else{
+                  $new_array = json_encode([]);
+              }
+             
+            
 
             $this->smarty->assign(array(
               'split_receivers' => strval( $new_array ),
