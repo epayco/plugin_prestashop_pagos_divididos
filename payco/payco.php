@@ -883,7 +883,7 @@ class Payco extends PaymentModule
         $orderAmount = floatval($order->getOrdersTotalPaid());
         if($orderAmount == floatval($amount)){
             
-            if($isTestTransaction == "yes"  && $x_approval_code == "000000"){
+            if($isTestTransaction == "yes"){
                $validation = true;  
             }
            
@@ -953,7 +953,7 @@ class Payco extends PaymentModule
                 
 
 
-                if ($payment && $validacionOrderName) {
+                if ($payment ) {
                     $orderStatus = Db::getInstance()->executeS('
                         SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
                         WHERE `id_order_state` = ' . (int)$config['P_STATE_END_TRANSACTION']);
@@ -972,6 +972,8 @@ class Payco extends PaymentModule
                             'SELECT * FROM `' . _DB_PREFIX_ . 'order_state_lang` 
                             WHERE `name` = "' . $orderStatusName . '"'
                         );
+                        if ($confirmation ){
+                         $this->RestoreStock($order, '-'); }
                     }else{
                         $orderStatusName = $orderStatus[0]['name'] . " Prueba";
                         $newOrderName = $orderStatusName;
