@@ -29,12 +29,12 @@
 </div>
 <p style="text-align: center;" class="epayco-title">
     <span class="animated-points">Cargando metodos de pago</span>
-   <br><small class="epayco-subtitle"> Si no se cargan autom谩ticamente, de clic en el bot贸n "Pagar con ePayco"</small>
+   <br><small class="epayco-subtitle"> Si no se cargan automáticamente, de clic en el botón "Pagar con ePayco"</small>
 </p>
 
 <script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
 <form id="epayco_form" style="text-align: center;">
-     <a href="#" onclick="return theFunction();">
+     <a href="#" onclick="return openChekout();">
         <img src="https://multimedia.epayco.co/epayco-landing/btns/Boton-epayco-color1.png" />
     </a>
     <script type="text/javascript">
@@ -68,9 +68,9 @@
             description: "{$descripcion}",
             invoice: "{$refVenta|escape:'htmlall':'UTF-8'}",
             currency: "{$currency|lower|escape:'htmlall':'UTF-8'}",
-            amount: "{$total|escape:'htmlall':'UTF-8'}",
-            tax: "{$iva|escape:'htmlall':'UTF-8'}",
-            tax_base: "{$baseDevolucionIva|escape:'htmlall':'UTF-8'}",
+            amount: "{$total|escape:'htmlall':'UTF-8'}".toString(),
+            tax: "{$iva|escape:'htmlall':'UTF-8'}".toString(),
+            tax_base: "{$baseDevolucionIva|escape:'htmlall':'UTF-8'}".toString(),
             country: "{$iso|lower|escape:'htmlall':'UTF-8'}",
             external: "{$external|escape:'htmlall':'UTF-8'}",
             response: "{$p_url_response|unescape: 'html' nofilter}",
@@ -80,7 +80,10 @@
             address_billing: "{$p_billing_address|escape:'htmlall':'UTF-8'}",
             lang: "{$lang|escape:'htmlall':'UTF-8'}",
             extra1: "{$extra1|escape:'htmlall':'UTF-8'}",
-            extra2: "{$extra2|escape:'htmlall':'UTF-8'}"
+            extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
+            autoclick: "true",
+            ip:  "{$ip|escape:'htmlall':'UTF-8'}",
+            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString()
             }
             if(isSplit){
             data.split_app_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
@@ -92,10 +95,56 @@
             data.split_rule= "multiple",
             data.split_receivers= split_receivers
         }
-            handler.open(data)
-                function theFunction () {
-                handler.open(data)
+           
+              
+
+        const apiKey = "{$public_key}";
+        const privateKey = "{$private_key}";
+        var openChekout = function () {
+            if(localStorage.getItem("invoicePaymentAgregador") == null){
+            localStorage.setItem("invoicePaymentAgregador", data.invoice);
+                makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
+            }else{
+                if(localStorage.getItem("invoicePaymentAgregador") != data.invoice){
+                    localStorage.removeItem("invoicePaymentAgregador");
+                    localStorage.setItem("invoicePaymentAgregador", data.invoice);
+                        makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
+                }else{
+                    makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
+                }
             }
+        }
+        var makePayment = function (privatekey, apikey, info, external) {
+            const headers = { "Content-Type": "application/json" } ;
+            headers["privatekey"] = privatekey;
+            headers["apikey"] = apikey;
+            var payment =   function (){
+                return  fetch("https://cms.epayco.io/checkout/payment/session", {
+                    method: "POST",
+                    body: JSON.stringify(info),
+                    headers
+                })
+                    .then(res =>  res.json())
+                    .catch(err => err);
+            }
+            payment()
+                .then(session => {
+                    if(session.data.sessionId != undefined){
+                        localStorage.removeItem("sessionPaymentAgregador");
+                        localStorage.setItem("sessionPaymentAgregador", session.data.sessionId);
+                        const handlerNew = window.ePayco.checkout.configure({
+                            sessionId: session.data.sessionId,
+                            external: external,
+                        });
+                        handlerNew.openNew()
+                    }
+                })
+                .catch(error => {
+                    error.message;
+                });
+        }
+    openChekout() 
+         
 
 </script>
     
