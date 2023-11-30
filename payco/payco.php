@@ -1020,6 +1020,12 @@ class Payco extends PaymentModule
                         $history->id_order = (int)$order->id;
                         $history->changeIdOrderState((int)Configuration::get($state), $order, true);
                     }
+                }else{
+                    if($confirmation && $x_cod_response == 3 && EpaycoOrder::ifStockDiscount($order->id)){
+                        if(!$validacionOrderName){
+                            $this->RestoreStock($order, '-');
+                        }
+                    }
                 }
                 
 
@@ -1083,7 +1089,7 @@ class Payco extends PaymentModule
                             
                         }
                     }
-
+                    $history->changeIdOrderState((int)Configuration::get($state), $order, true);
                     if(!$validacionOrderName){
                         if(!$test && $orderStatusPreName != "ePayco Pago Rechazado" || $orderStatusPreName != "ePayco Pago Cancelado" || $orderStatusPreName != "ePayco Pago Fallido"){
                             $keepOn = true;
