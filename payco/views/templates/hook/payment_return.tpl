@@ -85,7 +85,8 @@
             extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
             autoclick: "true",
             ip:  "{$ip|escape:'htmlall':'UTF-8'}",
-            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString()
+            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString(),
+            extras_epayco:{extra5:"P25"}
             }
             if(isSplit){
             data.split_app_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
