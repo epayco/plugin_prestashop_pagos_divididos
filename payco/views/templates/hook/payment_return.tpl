@@ -32,7 +32,9 @@
    <br><small class="epayco-subtitle"> Si no se cargan automáticamente, de clic en el botón "Pagar con ePayco"</small>
 </p>
 
+
 <script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
+
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return openChekout();">
         <img src="https://multimedia.epayco.co/epayco-landing/btns/Boton-epayco-color1.png" />
@@ -83,7 +85,8 @@
             extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
             autoclick: "true",
             ip:  "{$ip|escape:'htmlall':'UTF-8'}",
-            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString()
+            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString(),
+            extras_epayco:{extra5:"P25"}
             }
             if(isSplit){
             data.split_app_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
