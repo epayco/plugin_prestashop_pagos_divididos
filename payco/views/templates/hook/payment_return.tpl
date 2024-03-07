@@ -42,6 +42,9 @@
             key: "{$public_key}",
             test: "{$merchanttest}"
         });
+         var extras_epayco = {
+            extra5:"P25"
+        };
          var isSplit = false;
 
         var js_array ="{$split_receivers|@print_r}";
@@ -83,7 +86,8 @@
             extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
             autoclick: "true",
             ip:  "{$ip|escape:'htmlall':'UTF-8'}",
-            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString()
+            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString(),
+            extras_epayco: extras_epayco
             }
             if(isSplit){
             data.split_app_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
