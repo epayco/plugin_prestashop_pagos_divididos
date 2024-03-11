@@ -592,9 +592,7 @@ class Payco extends PaymentModule
 			WHERE `name` = ' . '"ePayco receiver"'
         ;
         $feature_id = Db::getInstance()->getValue($sql);
-        $products_info= Db::getInstance()->executeS('
-                
-            SELECT DISTINCT psod.`product_id`,      
+        $query = 'SELECT DISTINCT psod.`product_id`,      
                    psod.`product_quantity`,
                    psod.`total_price_tax_excl` AS "product_price",
                    psod.`total_price_tax_incl` AS "product_tax",
@@ -604,18 +602,24 @@ class Payco extends PaymentModule
             FROM `' . _DB_PREFIX_ . 'order_detail` psod 
                 LEFT JOIN `' . _DB_PREFIX_ . 'feature_product` psfp 
                     ON (psod.`product_id` = psfp.`id_product`)
+                LEFT JOIN `' . _DB_PREFIX_ . 'feature_value` psv 
+                    ON (psfp.`id_feature_value` = psv.`id_feature_value`) 
                 LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` psvl 
-                    ON (psfp.`id_feature_value` = psvl.`id_feature_value`) 
-                INNER JOIN `' . _DB_PREFIX_ . 'payco_split` psps 
+                    ON (psv.`id_feature_value` = psvl.`id_feature_value`) 
+                LEFT JOIN `' . _DB_PREFIX_ . 'payco_split` psps 
                     ON (psvl.`value` = psps.`customer_id`) 
-            WHERE psod.id_order = ' . (int) $extra2. ' AND psfp.id_feature = '.(int)$feature_id
-            )
-        ;
-        $split = false;
-            if(count($products_info)>0){
-                $split = true;
-            }
-
+            WHERE psod.id_order = ' . (int) $extra2. ' AND psps.typefeed !=0 
+            GROUP BY psod.`product_id`,psod.`product_quantity`,psod.`total_price_tax_excl`, 
+                psod.`total_price_tax_incl`,psfp.id_feature_value, psvl.value, psps.`feed`,
+                psps.`typefeed`
+            ';
+        $products_info= Db::getInstance()->executeS($query);
+          $split = false;
+          if(count($products_info)>0){
+            $split = true;
+          }
+          //var_dump($products_info);
+            //die();
           $emailComprador = $this->context->customer->email;
           $valorBaseDevolucion = $order->total_paid_tax_excl;
           $iva = $value - $valorBaseDevolucion;
@@ -709,6 +713,7 @@ class Payco extends PaymentModule
                 );
                 array_push($vendorsArray, $other );
             }
+            
               $sql_query = '
                     SELECT DISTINCT psod.`product_id`,      
                            psod.`product_quantity`,
@@ -718,6 +723,7 @@ class Payco extends PaymentModule
                     WHERE psod.id_order = ' . (int)$extra2
                   . ' AND psod.product_id  IN (' . $idproduct_without_split.')';
               $vendorsArraysWhithoutSplit= Db::getInstance()->executeS($sql_query);
+              
               foreach ($vendorsArraysWhithoutSplit as $receiver)
               {
                   $receiver_total_tax =  floatval($receiver['product_tax']);
@@ -736,7 +742,7 @@ class Payco extends PaymentModule
                   
               }
               
-                 if($split){
+              if($split){
                   $new_array = str_replace('"',"'",json_encode($vendorsArray));
               }else{
                   $new_array = json_encode([]);
@@ -744,7 +750,12 @@ class Payco extends PaymentModule
              
             
             $myIp = $this->getCustomerIp();
+            $is_split = 'false';
+             if(count($vendorsArray)>0){
+                $is_split = 'true';
+             }
             $this->smarty->assign(array(
+              'isSplit' =>  $is_split,   
               'split_receivers' => strval( $new_array ),
               'this_path_bw' => $this->_path,
               'p_signature' => $p_signature,
