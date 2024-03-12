@@ -41,7 +41,6 @@ class PaycoConfirmationModuleFrontController extends ModuleFrontController
     public function postProcess(){
 
     	$payco = new Payco();
-
 		if (isset($_REQUEST['x_cod_response']))
 		{	
 			$extra1=trim($_REQUEST['x_extra1']);
@@ -52,12 +51,10 @@ class PaycoConfirmationModuleFrontController extends ModuleFrontController
 			$currency=trim($_REQUEST['x_currency_code']);
 			$signature=trim($_REQUEST['x_signature']);
 			$confirmation=true;
-		    $payco->PaymentSuccess($extra1,$response,$referencia,$transid,$amount,$currency,$signature, $confirmation);
-		}else{
-			
+			$x_test_request=trim($_REQUEST['x_test_request']);
+			$x_cod_transaction_state= trim($_REQUEST['x_cod_transaction_state']);
+			$x_approval_code = trim($_REQUEST['x_approval_code']);
+		    $payco->PaymentSuccess($extra1,$response,$referencia,$transid,$amount,$currency,$signature, $confirmation,$x_test_request,$x_cod_transaction_state,0,$x_approval_code);
 		}
-
     }
 }
-
-

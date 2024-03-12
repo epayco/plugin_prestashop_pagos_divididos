@@ -1,0 +1,14 @@
+{
+    "name": "ricardo.saldarriaga/php",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "pruebasepayco",
+            "email": "ricardo.saldarriaga@payco.co"
+        }
+    ],
+    "require": {
+        "epayco/epayco-php" : "dev-master"
+    }
+}

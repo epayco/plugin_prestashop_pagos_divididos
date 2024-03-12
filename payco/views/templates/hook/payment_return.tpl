@@ -31,159 +31,131 @@
     <span class="animated-points">Cargando metodos de pago</span>
    <br><small class="epayco-subtitle"> Si no se cargan automáticamente, de clic en el botón "Pagar con ePayco"</small>
 </p>
-<style>
-    .epayco-title{
-        max-width: 900px;
-        display: block;
-        margin:auto;
-        color: #444;
-        font-weight: 700;
-        margin-bottom: 25px;
-    }
 
-    .loader-container{
-        position: relative;
-        padding: 20px;
-        color: #f0943e;
-    }
-
-    .epayco-subtitle{
-        font-size: 14px;
-    }
-    .epayco-button-render{
-        transition: all 500ms cubic-bezier(0.000, 0.445, 0.150, 1.025);
-        transform: scale(1.1);
-        box-shadow: 0 0 4px rgba(0,0,0,0);
-    }
-    .epayco-button-render:hover {
-        /*box-shadow: 0 0 4px rgba(0,0,0,.5);*/
-        transform: scale(1.2);
-    }
-
-    .animated-points::after{
-        content: '';
-        animation-duration: 2s;
-        animation-fill-mode: forwards;
-        animation-iteration-count: infinite;
-        animation-name: animatedPoints;
-        animation-timing-function: linear;
-        position: absolute;
-    }
-
-    .animated-background {
-        animation-duration: 2s;
-        animation-fill-mode: forwards;
-        animation-iteration-count: infinite;
-        animation-name: placeHolderShimmer;
-        animation-timing-function: linear;
-        color: #f6f7f8;
-        background: linear-gradient(to right, #7b7b7b 8%, #999 18%, #7b7b7b 33%);
-        background-size: 800px 104px;
-        position: relative;
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    
-    .loading::before{
-        -webkit-background-clip: padding-box;
-        background-clip: padding-box;
-        box-sizing: border-box;
-        border-width: 2px;
-        border-color: currentColor currentColor currentColor transparent;
-        position: absolute;
-        margin: auto;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        content: " ";
-        display: inline-block;
-        background: center center no-repeat;
-        background-size: cover;
-        border-radius: 50%;
-        border-style: solid;
-        width: 30px;
-        height: 30px;
-        opacity: 1;
-        -webkit-animation: loaderAnimation 1s infinite linear,fadeIn 0.5s ease-in-out;
-        -moz-animation: loaderAnimation 1s infinite linear, fadeIn 0.5s ease-in-out;
-        animation: loaderAnimation 1s infinite linear, fadeIn 0.5s ease-in-out;
-    }
-
-    @keyframes animatedPoints{
-        33%{
-            content: '.'
-        }
-        66%{
-            content: '..'
-        }
-        100%{
-            content: '...'
-        }
-
-    }
-    @keyframes placeHolderShimmer{
-        0%{
-            background-position: -800px 0
-        }
-        100%{
-            background-position: 800px 0
-        }
-    }
-    @keyframes loaderAnimation{
-        0%{
-            -webkit-transform:rotate(0);
-            transform:rotate(0);
-            animation-timing-function:cubic-bezier(.55,.055,.675,.19)
-        }
-        50%{
-            -webkit-transform:rotate(180deg);
-            transform:rotate(180deg);
-            animation-timing-function:cubic-bezier(.215,.61,.355,1)
-        }
-        100%{
-            -webkit-transform:rotate(360deg);
-            transform:rotate(360deg)
-        }
-    }
-</style>
-
+<script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
 <form id="epayco_form" style="text-align: center;">
-    <script src="https://checkout.epayco.co/checkout.js"
-        class="epayco-button"
-        data-epayco-key="{$public_key}"
-        data-epayco-amount="{$total|escape:'htmlall':'UTF-8'}"
-        data-epayco-tax="{$iva|escape:'htmlall':'UTF-8'}"
-        data-epayco-tax-base="{$baseDevolucionIva|escape:'htmlall':'UTF-8'}"    
-        data-epayco-name="ORDEN DE COMPRA # {$refVenta|escape:'htmlall':'UTF-8'}"
-        data-epayco-description="ORDEN DE COMPRA # {$refVenta|escape:'htmlall':'UTF-8'}"
-        data-epayco-currency="{$currency|lower|escape:'htmlall':'UTF-8'}"
-        data-epayco-invoice="{$refVenta|escape:'htmlall':'UTF-8'}"
-        data-epayco-country="{$iso|lower|escape:'htmlall':'UTF-8'}"
-        data-epayco-test={$merchanttest}
-        data-epayco-extra1="{$extra1|escape:'htmlall':'UTF-8'}",
-        data-epayco-extra2="{$extra2|escape:'htmlall':'UTF-8'}",
-        data-epayco-extra3="",
-        data-epayco-external="{$external|escape:'htmlall':'UTF-8'}"
-        data-epayco-response="{$p_url_response|unescape: 'html' nofilter}" 
-        data-epayco-confirmation="{$p_url_confirmation|unescape: 'html' nofilter}"
-        data-epayco-email-billing="{$p_billing_email|escape:'htmlall':'UTF-8'}"
-        data-epayco-name-billing="{$p_billing_name|escape:'htmlall':'UTF-8'} {$p_billing_last_name|escape:'htmlall':'UTF-8'}"
-        data-epayco-address-billing="{$p_billing_address|escape:'htmlall':'UTF-8'}"
-        data-epayco-lang="es"
-        data-epayco-button="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/btn4.png"
-        data-epayco-mobilephone-billing="{$p_billing_phone|escape:'htmlall':'UTF-8'}"
-        data-epayco-autoClick="true"
-        >
-    </script>
-</form>
+     <a href="#" onclick="return openChekout();">
+        <img src="https://multimedia.epayco.co/epayco-landing/btns/Boton-epayco-color1.png" />
+    </a>
+    <script type="text/javascript">
+        var handler = ePayco.checkout.configure({
+            key: "{$public_key}",
+            test: "{$merchanttest}"
+        });
+        var extras_epayco = {
+            extra5:"P25"
+        };
+        var isSplit = "{$merchanttest}" === "true" ? true : false;
 
-    {literal} 
-<script>
-    
+        var js_array ="{$split_receivers|@print_r}";
+
+        const js_arrays = js_array.substring(0, js_array.length - 1);
+        var split_receiver =JSON.parse(js_arrays.replace(/'/g,'"'));
+        if(split_receiver.length > 0){
+            isSplit = true;
+        }
+            let split_receivers = [];
+            for(var jsa of split_receiver){
+                split_receivers.push({
+                    "id" :  jsa.id,
+                    "total": jsa.total,
+                    "iva" : jsa.iva,
+                    "base_iva": jsa.base_iva,
+                    "fee" : jsa.fee
+                });
+            }
+
+
+        var data={
+            name: "{$descripcion}",
+            description: "{$descripcion}",
+            invoice: "{$refVenta|escape:'htmlall':'UTF-8'}",
+            currency: "{$currency|lower|escape:'htmlall':'UTF-8'}",
+            amount: "{$total|escape:'htmlall':'UTF-8'}".toString(),
+            tax: "{$iva|escape:'htmlall':'UTF-8'}".toString(),
+            tax_base: "{$baseDevolucionIva|escape:'htmlall':'UTF-8'}".toString(),
+            country: "{$iso|lower|escape:'htmlall':'UTF-8'}",
+            external: "{$external|escape:'htmlall':'UTF-8'}",
+            response: "{$p_url_response|unescape: 'html' nofilter}",
+            confirmation: "{$p_url_confirmation|unescape: 'html' nofilter}",
+            email_billing: "{$p_billing_email|escape:'htmlall':'UTF-8'}",
+            name_billing: "{$p_billing_name|escape:'htmlall':'UTF-8'} {$p_billing_last_name|escape:'htmlall':'UTF-8'}",
+            address_billing: "{$p_billing_address|escape:'htmlall':'UTF-8'}",
+            lang: "{$lang|escape:'htmlall':'UTF-8'}",
+            extra1: "{$extra1|escape:'htmlall':'UTF-8'}",
+            extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
+            autoclick: "true",
+            ip:  "{$ip|escape:'htmlall':'UTF-8'}",
+            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString(),
+            extras_epayco: extras_epayco
+            }
+            if(isSplit){
+                data.split_app_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
+                data.split_merchant_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
+                data.split_type= "01",
+                data.split_primary_receiver= "{$merchantid|escape:'htmlall':'UTF-8'}",
+                data.split_primary_receiver_fee= "0",
+                data.splitPrimaryReceiver_fee = "0",
+                data.splitpayment= "true",
+                data.split_rule= "multiple",
+                data.split_receivers= split_receivers
+            }
+           
+              
+
+        const apiKey = "{$public_key}";
+        const privateKey = "{$private_key}";
+        var openChekout = function () {
+            console.log(data);
+            if(localStorage.getItem("invoicePaymentAgregador") == null){
+            localStorage.setItem("invoicePaymentAgregador", data.invoice);
+                makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
+            }else{
+                if(localStorage.getItem("invoicePaymentAgregador") != data.invoice){
+                    localStorage.removeItem("invoicePaymentAgregador");
+                    localStorage.setItem("invoicePaymentAgregador", data.invoice);
+                    makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
+                }else{
+                   makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
+                }
+            }
+        }
+        var makePayment = function (privatekey, apikey, info, external) {
+            const headers = { "Content-Type": "application/json" } ;
+            headers["privatekey"] = privatekey;
+            headers["apikey"] = apikey;
+            var payment =   function (){
+                return  fetch("https://cms.epayco.io/checkout/payment/session", {
+                    method: "POST",
+                    body: JSON.stringify(info),
+                    headers
+                })
+                    .then(res =>  res.json())
+                    .catch(err => err);
+            }
+            payment()
+                .then(session => {
+                    if(session.data.sessionId != undefined){
+                        localStorage.removeItem("sessionPaymentAgregador");
+                        localStorage.setItem("sessionPaymentAgregador", session.data.sessionId);
+                        const handlerNew = window.ePayco.checkout.configure({
+                            sessionId: session.data.sessionId,
+                            external: external,
+                        });
+                        handlerNew.openNew()
+                    }else{
+                        handler.open(data)
+                    }
+                })
+                .catch(error => {
+                    error.message;
+                });
+        }
+    openChekout() 
+         
+
 </script>
-    {/literal}
+    
 {else}
 <p class="warning">
   {l s='Hemos notado un problema con tu orden, si crees que es un error puedes contactar a nuestro departamento de Soporte' mod='payco'}
