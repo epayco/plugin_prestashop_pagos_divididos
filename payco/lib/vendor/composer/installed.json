@@ -1,0 +1,100 @@
+[
+    {
+        "name": "epayco/epayco-php",
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/epayco/epayco-php.git",
+            "reference": "261fd5da487733e522718e5ca10c701ce310332b"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/epayco/epayco-php/zipball/261fd5da487733e522718e5ca10c701ce310332b",
+            "reference": "261fd5da487733e522718e5ca10c701ce310332b",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.3.0",
+            "rmccue/requests": ">=1.0"
+        },
+        "require-dev": {
+            "phpunit/phpunit": "^4.8.9"
+        },
+        "time": "2021-04-07T13:05:29+00:00",
+        "type": "sdk",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Epayco\\": "src/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "MIT"
+        ],
+        "authors": [
+            {
+                "name": "Epayco and contributors",
+                "homepage": "https://github.com/epayco/epayco-php/graphs/contributors"
+            }
+        ],
+        "description": "Epayco API client for PHP",
+        "homepage": "https://github.com/epayco/epayco-php",
+        "keywords": [
+            "api",
+            "epayco"
+        ]
+    },
+    {
+        "name": "rmccue/requests",
+        "version": "v1.7.0",
+        "version_normalized": "1.7.0.0",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/rmccue/Requests.git",
+            "reference": "87932f52ffad70504d93f04f15690cf16a089546"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/rmccue/Requests/zipball/87932f52ffad70504d93f04f15690cf16a089546",
+            "reference": "87932f52ffad70504d93f04f15690cf16a089546",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.2"
+        },
+        "require-dev": {
+            "requests/test-server": "dev-master"
+        },
+        "time": "2016-10-13T00:11:37+00:00",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-0": {
+                "Requests": "library/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "ISC"
+        ],
+        "authors": [
+            {
+                "name": "Ryan McCue",
+                "homepage": "http://ryanmccue.info"
+            }
+        ],
+        "description": "A HTTP library written in PHP, for human beings.",
+        "homepage": "http://github.com/rmccue/Requests",
+        "keywords": [
+            "curl",
+            "fsockopen",
+            "http",
+            "idna",
+            "ipv6",
+            "iri",
+            "sockets"
+        ]
+    }
+]
