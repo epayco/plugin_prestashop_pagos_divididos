@@ -98,7 +98,7 @@
                             <div class="row">
                                 <div class="container">
                                     <div class="col-lg-8 col-lg-offset-2">
-                                        <img src="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/epayco/pagos_procesados_por_epayco_260px.png" style="margin-top:10px; float:left"> <img src="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/btns/epayco/credibancologo.png" height="40px" style="margin-top:10px; float:right">
+                                        <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/paymentLogo.svg" height="40px" style="margin-top:10px; float:right">
                                     </div>
                                 </div>
                             </div>
@@ -118,13 +118,12 @@
                     }
                     $(document).ready(function() {
                     //llave publica del comercio
-
                     //Referencia de payco que viene por url
-                    var ref_payco = "{$ref_payco|escape:'htmlall':'UTF-8'}";
+                    var ref_payco = getQueryParam('ref_payco');
                     //Url Rest Metodo get, se pasa la llave y la ref_payco como paremetro
-                    var urlapp = "{$url|unescape: 'html' nofilter}";
+                    var urlapp = "https://secure.epayco.io/validation/v1/reference/"+ref_payco;
                     
-                    $.get(urlapp, function(response) {
+                    $.get(urlapp, function(response,error) {
 
 
                         if (response.success) {
