@@ -24,7 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-<img src="https://369969691f476073508a-60bf0867add971908d4f26a64519c2aa.ssl.cf5.rackcdn.com/logos/logo_epayco_200px.png"  />
+<img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png"  />
 <br/>
 <div class="alert alert-info">
 <p><strong>{l s='Este módulo le permite aceptar pagos seguros por la plataforma de pagos ePayco.' mod='payco'}</strong></p>

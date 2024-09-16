@@ -61,15 +61,20 @@ class EpaycoOrder extends ObjectModel{
 	 * @param int $orderId
 	 */	
 	public static function ifStockDiscount($orderId)
-	{	
-		$db = Db::getInstance();
-		$result = $db->getRow('
-			SELECT `order_stock_discount` FROM `'.EpaycoOrder::$definition['table'].'`
-			WHERE `order_id` = "'.intval($orderId).'"');
+{    
+    $db = Db::getInstance();
+    $result = $db->getRow('
+        SELECT `order_stock_discount` FROM `'.EpaycoOrder::$definition['table'].'`
+        WHERE `order_id` = "'.intval($orderId).'"');
 
-		return intval($result["order_stock_discount"]) != 0 ? true : false;
-		
-	}
+    // Verifica si $result es un array antes de intentar acceder a él
+    if (is_array($result) && isset($result["order_stock_discount"])) {
+        return intval($result["order_stock_discount"]) != 0 ? true : false;
+    } else {
+        // Manejo del caso en que no se encuentra el resultado esperado
+        return false;
+    }
+}
 
 	/**
 	 * Actualizar que ya se le descontó el stock a una orden

@@ -35,14 +35,17 @@
 <script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return openChekout();">
-        <img src="https://multimedia.epayco.co/epayco-landing/btns/Boton-epayco-color1.png" />
+        <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png" />
     </a>
     <script type="text/javascript">
         var handler = ePayco.checkout.configure({
             key: "{$public_key}",
             test: "{$merchanttest}"
         });
-         var isSplit = false;
+        var extras_epayco = {
+            extra5:"P25"
+        };
+        var isSplit = "{$merchanttest}" === "true" ? true : false;
 
         var js_array ="{$split_receivers|@print_r}";
 
@@ -83,24 +86,27 @@
             extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
             autoclick: "true",
             ip:  "{$ip|escape:'htmlall':'UTF-8'}",
-            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString()
+            test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString(),
+            extras_epayco: extras_epayco
             }
             if(isSplit){
-            data.split_app_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
-            data.split_merchant_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
-            data.split_type= "01",
-            data.split_primary_receiver= "{$merchantid|escape:'htmlall':'UTF-8'}",
-            data.split_primary_receiver_fee= "0",
-            data.splitpayment= "true",
-            data.split_rule= "multiple",
-            data.split_receivers= split_receivers
-        }
+                data.split_app_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
+                data.split_merchant_id= "{$merchantid|escape:'htmlall':'UTF-8'}",
+                data.split_type= "01",
+                data.split_primary_receiver= "{$merchantid|escape:'htmlall':'UTF-8'}",
+                data.split_primary_receiver_fee= "0",
+                data.splitPrimaryReceiver_fee = "0",
+                data.splitpayment= "true",
+                data.split_rule= "multiple",
+                data.split_receivers= split_receivers
+            }
            
               
 
         const apiKey = "{$public_key}";
         const privateKey = "{$private_key}";
         var openChekout = function () {
+            console.log(data);
             if(localStorage.getItem("invoicePaymentAgregador") == null){
             localStorage.setItem("invoicePaymentAgregador", data.invoice);
                 makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
@@ -108,9 +114,9 @@
                 if(localStorage.getItem("invoicePaymentAgregador") != data.invoice){
                     localStorage.removeItem("invoicePaymentAgregador");
                     localStorage.setItem("invoicePaymentAgregador", data.invoice);
-                        makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
-                }else{
                     makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
+                }else{
+                   makePayment(privateKey,apiKey,data, data.external == "true"?true:false)
                 }
             }
         }
@@ -137,6 +143,8 @@
                             external: external,
                         });
                         handlerNew.openNew()
+                    }else{
+                        handler.open(data)
                     }
                 })
                 .catch(error => {
