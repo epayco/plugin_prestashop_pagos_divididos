@@ -90,19 +90,6 @@ class Payco extends PaymentModule
             'P_REDUCE_STOCK_PENDING'
         ));
 
-        $config = Configuration::getMultiple(array(
-            'P_CUST_ID_CLIENTE',
-            'P_KEY',
-            'PUBLIC_KEY',
-            'PRIVATE_KEY',
-            'P_TEST_REQUEST',
-            'P_TITULO',
-            //'P_SPLIT_PRIMARY_RECEIVER_FEE',
-            'P_STATE_END_TRANSACTION',
-            'p_split_type',
-            'P_TYPE_CHECKOUT',
-            'P_REDUCE_STOCK_PENDING'
-        ));
 
         if (isset($config['P_CUST_ID_CLIENTE']))
             $this->p_cust_id_cliente = trim($config['P_CUST_ID_CLIENTE']);
