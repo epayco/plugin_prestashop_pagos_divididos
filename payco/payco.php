@@ -690,15 +690,15 @@ class Payco extends PaymentModule
 
             $idproduct_without_split = '';
             foreach ($productos as $producto) {
-                // Your product id
+
                 $id_product = (int)$producto['id_product'];
-                // Language id
+
                 $lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
-                // Load product object
+
                 $product = new Product($id_product, false, $lang_id);
-                // Validate product object
+
                 if (Validate::isLoadedObject($product)) {
-                    // Get product name
+
                     $descripcion = $descripcion . $product->name . ', ';
                 }
                 $products_ids = array_column($products_info, 'product_id');
@@ -713,9 +713,7 @@ class Payco extends PaymentModule
                 EpaycoOrder::create($order->id, 1);
             }
 
-            $p_url_response = Context::getContext()->link->getModuleLink('payco', 'response');
-            $p_url_confirmation = Context::getContext()->link->getModuleLink('payco', 'confirmation');
-            $lang = $this->context->language->language_code;
+
 
             $vendorsArray = array();
             foreach ($products_info as $receiver) {
@@ -771,6 +769,17 @@ class Payco extends PaymentModule
                 $new_array = json_encode([]);
             }
 
+            $p_url_response = Context::getContext()->link->getModuleLink('payco', 'response');
+            $p_url_confirmation = Context::getContext()->link->getModuleLink('payco', 'confirmation');
+            $lang = $this->context->language->language_code;
+
+            if ($lang == "es") {
+                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png';
+            } else {
+                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-Ingles.png';
+                $lang = "en";
+            }
+
 
             $myIp = $this->getCustomerIp();
             $is_split = 'false';
@@ -813,14 +822,14 @@ class Payco extends PaymentModule
                     'p_billing_phone' => "",
                     'lang' => $lang,
                     'descripcion' => $descripcion,
+                    'url_button' => $url_button,
                     'ip' => $myIp
                 )
             );
         } else {
             $this->smarty->assign('status', 'failed');
         }
-        //redirige al checkout
-        //luego al controlador response.php
+
         return $this->display(__FILE__, 'views/templates/hook/payment_return.tpl');
     }
 
@@ -918,15 +927,14 @@ class Payco extends PaymentModule
         }
     }
 
-    public function PaymentSuccess($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code)
+    public function PaymentSuccess($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code, $x_franchise)
     {
-        $this->Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code);
+        $this->Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code, $x_franchise);
     }
 
 
-    private function Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $old_ref_payco, $x_approval_code)
+    private function Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $old_ref_payco, $x_approval_code, $x_franchise)
     {
-
         $config = Configuration::getMultiple(array('P_CUST_ID_CLIENTE', 'P_KEY', 'PUBLIC_KEY', 'P_TEST_REQUEST', 'P_STATE_END_TRANSACTION'));
         $x_cust_id_cliente = trim($config['P_CUST_ID_CLIENTE']);
         $x_key = trim($config['P_KEY']);
@@ -943,47 +951,27 @@ class Payco extends PaymentModule
         );
 
         $payment = false;
-        if ($textMode == "TRUE") {
-            $state = 'PAYCO_OS_REJECTED_TEST';
-            if ($x_cod_response == 4)
-                $state = 'PAYCO_OS_FAILED_TEST';
-            else if ($x_cod_response == 2)
-                $state = 'PAYCO_OS_REJECTED_TEST';
-            else if ($x_cod_response == 3) {
-                $state = 'PAYCO_OS_PENDING_TEST';
-                $statePending = $state;
-            } else if ($x_cod_response == 9)
-                $state = 'PAYCO_OS_EXPIRED_TEST';
-            else if ($x_cod_response == 10)
-                $state = 'PAYCO_OS_ABANDONED_TEST';
-            else if ($x_cod_response == 11)
-                $state = 'PAYCO_OS_CANCELED_TEST';
-            else if ($x_cod_response == 1) {
-                $state = 'PS_OS_PAYMENT';
-                $payment = true;
-            }
-        } else {
+        $state = 'PAYCO_OS_REJECTED';
+        if ($x_cod_response == 4)
+            $state = 'PAYCO_OS_FAILED';
+        else if ($x_cod_response == 2)
             $state = 'PAYCO_OS_REJECTED';
-            if ($x_cod_response == 4)
-                $state = 'PAYCO_OS_FAILED';
-            else if ($x_cod_response == 2)
-                $state = 'PAYCO_OS_REJECTED';
-            else if ($x_cod_response == 3) {
-                $state = 'PAYCO_OS_PENDING';
-                $statePending = $state;
-            } else if ($x_cod_response == 9)
-                $state = 'PAYCO_OS_EXPIRED';
-            else if ($x_cod_response == 10)
-                $state = 'PAYCO_OS_ABANDONED';
-            else if ($x_cod_response == 11)
-                $state = 'PAYCO_OS_CANCELED';
-            else if ($x_cod_response == 1) {
-                $state = 'PS_OS_PAYMENT';
-                $payment = true;
-            }
+        else if ($x_cod_response == 3) {
+            $state = 'PAYCO_OS_PENDING';
+            $statePending = $state;
+        } else if ($x_cod_response == 9)
+            $state = 'PAYCO_OS_EXPIRED';
+        else if ($x_cod_response == 10)
+            $state = 'PAYCO_OS_ABANDONED';
+        else if ($x_cod_response == 11)
+            $state = 'PAYCO_OS_CANCELED';
+        else if ($x_cod_response == 1) {
+            $state = 'PS_OS_PAYMENT';
+            $payment = true;
         }
 
-        $order = new Order((int)Order::getOrderByCartId((int)$idorder));
+        $order_id = Order::getByCartId((int)$idorder);
+        $order = Order::getByCartId((int)$idorder);
         $keepOn = false;
         if ($this->p_test_request == 1) {
             $test = "yes";
@@ -999,228 +987,187 @@ class Payco extends PaymentModule
             }
 
 
-            $order = new Order((int)Order::getOrderByCartId((int)$idorder));
-            $keepOn = false;
-            if ($this->p_test_request == 1) {
-                $test = "yes";
-            } else {
-                $test = "no";
-            }
-            $isTestTransaction = $textMode == 'TRUE' ? "yes" : "no";
-            $orderAmount = floatval($order->getOrdersTotalPaid());
-            if ($orderAmount == floatval($amount)) {
-
-                if ($isTestTransaction == "yes") {
+            if ($isTestTransaction == "no") {
+                if ($x_approval_code != "000000" && $x_cod_response == 1) {
                     $validation = true;
-                }
-
-
-                if ($isTestTransaction == "no") {
-                    if ($x_approval_code != "000000" && $x_cod_response == 1) {
+                } else {
+                    if ($x_cod_response != 1) {
                         $validation = true;
                     } else {
-                        if ($x_cod_response != 1) {
-                            $validation = true;
-                        } else {
-                            $validation = false;
-                        }
+                        $validation = false;
                     }
                 }
             }
-            $orderStatusPre = Db::getInstance()->executeS('
-            SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
-            WHERE `id_order_state` = ' . (int)$order->current_state);
-            $orderStatusPreName = $orderStatusPre[0]['name'];
+        }
 
-            if ($test == "yes") {
-                if (
-                    $orderStatusPreName == "ePayco Pago Rechazado Prueba" ||
-                    $orderStatusPreName == "ePayco Pago Cancelado Prueba" ||
-                    $orderStatusPreName == "ePayco Pago Abandonado Prueba" ||
-                    $orderStatusPreName == "ePayco Pago Expirado Prueba"  ||
-                    $orderStatusPreName == "ePayco Pago Fallido Prueba"
-                ) {
-                    $validacionOrderName = false;
-                } else {
-                    $validacionOrderName = true;
-                }
-            } else {
-                if (
-                    $orderStatusPreName == "ePayco Pago Rechazado" ||
-                    $orderStatusPreName == "ePayco Pago Cancelado" ||
-                    $orderStatusPreName == "ePayco Pago Abandonado" ||
-                    $orderStatusPreName == "ePayco Pago Expirado"  ||
-                    $orderStatusPreName == "ePayco Pago Fallido"
-                ) {
-                    $validacionOrderName = false;
-                } else {
-                    $validacionOrderName = true;
-                }
+        $orderStatusPre = Db::getInstance()->executeS('
+        SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
+        WHERE `id_order_state` = ' . (int)$order->current_state);
+        $orderStatusPreName = $orderStatusPre[0]['name'];
+
+        if (
+            $orderStatusPreName == "ePayco Pago Rechazado" ||
+            $orderStatusPreName == "ePayco Pago Cancelado" ||
+            $orderStatusPreName == "ePayco Pago Abandonado" ||
+            $orderStatusPreName == "ePayco Pago Expirado"  ||
+            $orderStatusPreName == "ePayco Pago Fallido"
+        ) {
+            $validacionOrderName = false;
+        } else {
+            $validacionOrderName = true;
+        }
+
+        if (!isset($validation)) {
+            $validation = false;
+        }
+
+        if ($x_signature == $signature && $validation) {
+            $current_state = $order->current_state;
+            if (!EpaycoOrder::ifStockDiscount($order->id)) {
+                EpaycoOrder::updateStockDiscount($order->id, 1);
             }
-            $history = new OrderHistory();
-            $history->id_order = (int)$order->id;
-            if ($x_signature == $signature && $validation) {
-                $current_state = $order->current_state;
 
-                if (!EpaycoOrder::ifStockDiscount($order->id)) {
-                    EpaycoOrder::updateStockDiscount($order->id, 1);
-                }
-                if ($current_state != Configuration::get($state)) {
-                    if ($confirmation && !$payment && $x_cod_response != 3 && EpaycoOrder::ifStockDiscount($order->id)) {
+            if ($current_state != Configuration::get($state)) {
+                if ($confirmation && !$payment && $x_cod_response != 3 && EpaycoOrder::ifStockDiscount($order->id)) {
+                    if (!$validacionOrderName) {
+                        $this->RestoreStock($order, '+');
+                        $history = new OrderHistory();
+                        $history->id_order = (int)$order->id;
+                        $history->changeIdOrderState((int)Configuration::get($state), $order, true);
+                    }
+                } else {
+                    if ($confirmation && $x_cod_response == 3 && EpaycoOrder::ifStockDiscount($order->id)) {
                         if (!$validacionOrderName) {
-                            $this->RestoreStock($order, '+');
-                            $history = new OrderHistory();
-                            $history->id_order = (int)$order->id;
-                            $history->changeIdOrderState((int)Configuration::get($state), $order, true);
+                            $this->RestoreStock($order, '-');
+                        }
+                    }
+                }
+
+                $history = new OrderHistory();
+                $history->id_order = (int)$order->id;
+
+                if ($payment && $validacionOrderName) {
+
+
+                    $orderStatus = Db::getInstance()->executeS(
+                        '
+                    SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
+                    WHERE `id_order_state` = ' . (int)$config['P_STATE_END_TRANSACTION'] . ' AND id_lang = ' . (int)$order->id_lang
+                    );
+
+                    if (!empty($orderStatus)) {
+                        $orderStatusName = $orderStatus[0]['name'];
+
+
+                        if (isset($this->p_state_end_transaction) && (int)$this->p_state_end_transaction > 0) {
+
+                            $orderHistory = new OrderHistory();
+                            $orderHistory->id_order = (int)$order->id;
+                            $orderHistory->changeIdOrderState((int)$this->p_state_end_transaction, (int)$order->id);
+                            $orderHistory->add();
+                        } else {
+
+                            $default_order_state = 2;
+                            $orderHistory = new OrderHistory();
+                            $orderHistory->id_order = (int)$order->id;
+                            $orderHistory->changeIdOrderState($default_order_state, (int)$order->id);
+                            $orderHistory->add();
+                        }
+
+
+                        $orderStatusEndId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+                            'SELECT id_order_state FROM `' . _DB_PREFIX_ . 'order_state_lang`
+                        WHERE `name` = "' . pSQL($orderStatusName) . '" AND id_lang = ' . (int)$order->id_lang
+                        );
+
+                        if ($orderStatusEndId) {
+
+                            $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
+                        } else {
+                            throw new PrestaShopException('No se encontró un estado de orden con el nombre: ' . $orderStatusName);
                         }
                     } else {
-                        if ($confirmation && $x_cod_response == 3 && EpaycoOrder::ifStockDiscount($order->id)) {
-                            if (!$validacionOrderName) {
+                        throw new PrestaShopException('El nombre del estado de la orden no está definido.');
+                    }
+                } else {
+                    if (in_array($x_cod_response, [2, 4, 6, 9, 10, 11])) {
+                        if ($current_state != Configuration::get($state)) {
+
+                            if (!$confirmation || ($x_franchise == "PSE" || !in_array($x_franchise, ["VS", "CR", "AM", "DC", "MC", "PSE"]))) {
+                                $this->RestoreStock($order, '+');
+                            }
+                            if (trim($x_cod_response) == 10) {
                                 $this->RestoreStock($order, '-');
                             }
-                        }
-                    }
-
-
-
-
-                    if ($payment) {
-                        $orderStatus = Db::getInstance()->executeS('
-                        SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
-                        WHERE `id_order_state` = ' . (int)$config['P_STATE_END_TRANSACTION']);
-                        if ($test == $isTestTransaction) {
-                            $myOrderName = $orderStatus[0]['name'];
-                            $findme   = 'Prueba';
-                            $pos = strpos($myOrderName, $findme);
-                            if ($pos === false) {
-                                $orderStatusName = $textMode == "TRUE" ? $orderStatus[0]['name'] . " Prueba" : $orderStatus[0]['name'];
-                            } else {
-                                $orderStatusName = $orderStatus[0]['name'];
-                            }
-
-                            $newOrderName = $orderStatusName;
-                            $orderStatusEndId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
-                                'SELECT * FROM `' . _DB_PREFIX_ . 'order_state_lang` 
-                            WHERE `name` = "' . $orderStatusName . '"'
-                            );
-                            if ($confirmation) {
-                                // $this->RestoreStock($order, '-'); 
-                            }
-                        } else {
-                            $orderStatusName = $orderStatus[0]['name'] . " Prueba";
-                            $newOrderName = $orderStatusName;
-                            $orderStatusEndId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
-                                'SELECT * FROM `' . _DB_PREFIX_ . 'order_state_lang` 
-                            WHERE `name` = "' . $orderStatusName . '"'
-                            );
-                            if ($orderStatusEndId != $current_state) {
-                                if ($orderStatusPreName != "ePayco Pago Pendiente Prueba") {
-                                    $this->RestoreStock($order, '+');
-                                }
-                            }
-                        }
-                        $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
-                    } else {
-
-                        if (($x_cod_response == 2
-                            || $x_cod_response == 4
-                            || $x_cod_response == 6
-                            || $x_cod_response == 9
-                            || $x_cod_response == 10
-                            || $x_cod_response == 11
-                        ) && EpaycoOrder::ifStockDiscount($order->id)) {
-                            if ($current_state != Configuration::get($state)) {
-                                if (trim($x_cod_transaction_state) == 10) {
-                                    if (!$confirmation && !$validacionOrderName) {
-                                        $this->RestoreStock($order, '+');
-                                    }
-                                }
-                                if ($orderStatusPreName == "ePayco Esperando Pago") {
-                                    $history->changeIdOrderState((int)Configuration::get($state), $order, true);
-                                    $this->RestoreStock($order, '+');
-                                }
-                            }
-                        }
-                        $history->changeIdOrderState((int)Configuration::get($state), $order, true);
-                        if (!$validacionOrderName) {
-                            if (!$test && $orderStatusPreName != "ePayco Pago Rechazado" || $orderStatusPreName != "ePayco Pago Cancelado" || $orderStatusPreName != "ePayco Pago Fallido") {
-                                $keepOn = true;
-                            }
-                            if ($test && $orderStatusPreName != "ePayco Pago Rechazado Prueba" || $orderStatusPreName != "ePayco Pago Cancelado Prueba" || $orderStatusPreName != "ePayco Pago Fallido Prueba") {
-                                $keepOn = true;
-                            }
-                            if ($keepOn && $orderStatusPreName == "ePayco Pago Rechazado") {
-                                if ($x_cod_response == 1) {
-                                    $orderStatus = Db::getInstance()->executeS('
-                                    SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
-                                    WHERE `id_order_state` = ' . (int)$config['P_STATE_END_TRANSACTION']);
-                                    $orderStatusName = $textMode == "TRUE" ? $orderStatus[0]['name'] . " Prueba" : $orderStatus[0]['name'];
-                                    $orderStatusEndId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
-                                        'SELECT * FROM `' . _DB_PREFIX_ . 'order_state_lang` 
-                                    WHERE `name` = "' . $orderStatusName . '"'
-                                    );
-                                    if ($isTestTransaction == "yes") {
-                                        $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
-                                    }
-                                }
-                                if ($textMode == "TRUE" && $x_cod_response != 1) {
-                                    $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
-                                } else {
-                                    if ($x_cod_response != 1) {
-                                        $history->changeIdOrderState((int)Configuration::get($state), $order, true);
-                                    }
-                                }
-                            }
-                            if (!$keepOn) {
+                            if ($orderStatusPreName == "ePayco Esperando Pago") {
                                 $history->changeIdOrderState((int)Configuration::get($state), $order, true);
+                                $this->RestoreStock($order, '+');
                             }
                         }
                     }
-                    if (!$validacionOrderName && !$keepOn) {
-                        $history->addWithemail(false);
+
+                    $history->changeIdOrderState((int)Configuration::get($state), $order, true);
+
+                    if (!$validacionOrderName) {
+                        if ($orderStatusPreName != "ePayco Pago Rechazado" && $orderStatusPreName != "ePayco Pago Cancelado" && $orderStatusPreName != "ePayco Pago Fallido") {
+                            $keepOn = true;
+                        }
+
+                        if ($keepOn && $x_cod_response == 1) {
+
+                            $orderStatus = Db::getInstance()->executeS(
+                                '
+                            SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
+                            WHERE `id_order_state` = ' . (int)$config['P_STATE_END_TRANSACTION']
+                            );
+                            $orderStatusName = $orderStatus[0]['name'];
+
+
+                            $orderStatusEndId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+                                'SELECT id_order_state FROM `' . _DB_PREFIX_ . 'order_state_lang`
+                            WHERE `name` = "' . pSQL($orderStatusName) . '" AND id_lang = ' . (int)$order->id_lang
+                            );
+
+                            if ($orderStatusEndId) {
+
+                                $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
+                            } else {
+                                throw new PrestaShopException('No se encontró un estado de orden con el nombre: ' . $orderStatusName);
+                            }
+                        }
                     }
                 }
-            } else {
-                $history->changeIdOrderState((int)Configuration::get("PS_OS_ERROR"), $order, true);
-                $this->RestoreStock($order, '+');
-                $history->addWithemail(false);
-            }
-            if ($confirmation) {
-                header("HTTP/1.1 200 OK");
-                echo $x_cod_response;
-                die();
-            } else {
-                $p_url_response = Context::getContext()->link->getModuleLink('payco', 'result');
-                Tools::redirect($p_url_response . "?ref_payco=" . $old_ref_payco);
-                /*if(Configuration::get('P_URL_RESPONSE') == Context::getContext()->link->getModuleLink('payco', 'response'))
-            {
-                Tools::redirect($p_url_response."?ref_payco=".$old_ref_payco);
-            }
-           else{
-              
-                 header("location:index.php?controller=history");
-              
-           }*/
             }
         }
     }
 
-
     private function RestoreStock($orderId, $operation)
     {
-        $order = $orderId;
-        foreach ($order->getProductsDetail() as $product) {
-            StockAvailable::updateQuantity($product['product_id'], $product['product_attribute_id'], $operation . (int)$product['product_quantity'], $order->id_shop);
+
+        $order = new Order($orderId);
+
+
+        if ($order && !empty($order->getProductsDetail())) {
+            foreach ($order->getProductsDetail() as $product) {
+
+                StockAvailable::updateQuantity(
+                    (int)$product['product_id'],
+                    (int)$product['product_attribute_id'],
+                    $operation . (int)$product['product_quantity'],
+                    (int)$order->id_shop
+                );
+            }
         }
     }
 
     private function PostCurl($url)
     {
-
         if (function_exists('curl_init')) {
+
             $ch = curl_init();
             $timeout = 5;
             $user_agent = 'Mozilla/5.0 (Windows NT 6.1; rv:8.0) Gecko/20100101 Firefox/8.0';
+
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -1231,11 +1178,14 @@ class Payco extends PaymentModule
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+
             $data = curl_exec($ch);
             curl_close($ch);
+
             return $data;
         } else {
-            $data =  @Tools::file_get_contents($url);
+
+            $data = @Tools::file_get_contents($url);
             return $data;
         }
     }
@@ -1252,27 +1202,7 @@ class Payco extends PaymentModule
                 'ignore_errors' => true
             )
         ));
+
         return $context;
-    }
-
-    public function SplitCustomer($customer_id, $fee, $typefeed)
-    {
-        $data = SplitRules::create($customer_id, $fee, $typefeed);
-        var_dump($data);
-        die();
-    }
-
-    public function SplitCustomerUpdate($customer_id, $fee, $typefeed)
-    {
-        $data = SplitRules::SplitCustomerUpdate($customer_id, $fee, $typefeed);
-        var_dump($data);
-        die();
-    }
-
-    public function SplitCustomerDelete($customer_id, $id_)
-    {
-        $data = SplitRules::deleteSplitRule($customer_id, $id_);
-        var_dump($data);
-        die();
     }
 }
