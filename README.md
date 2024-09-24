@@ -1,45 +1,47 @@
+# Plugin PrestaShop Pagos Divididos
 
-# ePayco plugin para PrestaShop con Pagos Divididos v1.8.0.1
+## Descripción
 
-**Si tiene alguna pregunta o problema, no dude en ponerse en contacto con nuestro soporte técnico: desarrollo@payco.co.**
+Este plugin permite gestionar pagos divididos en PrestaShop, facilitando a los comerciantes la distribución de pagos entre múltiples receptores. Es esencial que los usuarios creen receptores en su cuenta de ePayco y configuren correctamente las llaves de acceso.
 
-## Tabla de contenido
-
+## Tabla de Contenido
 - [Versiones](#versiones)
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
-- [Configuración de Pagos Divididos](#configuración-de-pagos-divididos)
+- [Pasos](#pasos)
 
 ## Versiones
-- [ePayco plugin Pagos Divididos PrestaShop v1.8.0.1](https://github.com/epayco/plugin_prestashop_pagos_divididos/releases/tag/v1.8.0.1)
-- [ePayco plugin Pagos Divididos PrestaShop v1.8.0.0](https://github.com/epayco/plugin_prestashop_pagos_divididos/releases/tag/v1.8.0.0)
-- [ePayco plugin Pagos Divididos PrestaShop v1.7.7](https://github.com/epayco/plugin_prestashop_pagos_divididos/releases/tag/v1.7.7)
-- [ePayco plugin Pagos Divididos PrestaShop v1.7.6](https://github.com/epayco/plugin_prestashop_pagos_divididos/releases/tag/v1.7.6.7)
+
+- ePayco plugin Pagos Divididos v1.8.0.1
 
 ## Requisitos
 
-- Cuenta activa en [ePayco](https://pagaycobra.com).
-- PrestaShop v1.7.0.0 o superior.
-- Acceso a las carpetas de instalación de PrestaShop.
-- Acceso al administrador de PrestaShop.
-- Tener receptores registrados en el dashboard de ePayco para pagos divididos.
+- Tener una cuenta activa en ePayco.
+- Tener instalado PrestaShop v1.6.1.6 o superior.
+- Acceso a las carpetas donde se encuentra instalado PrestaShop.
+- Acceso al panel de administración de PrestaShop.
 
 ## Instalación
 
-1. [Descargue el plugin.](https://github.com/epayco/plugin_prestashop_pagos_divididos/releases/tag/v1.8.0.0)
-2. Acceda al administrador de PrestaShop.
-3. Ingrese a **Módulos y Servicios**.
-4. Cargue el plugin en PrestaShop desde la opción **Subir un módulo**.
-5. Busque el módulo ePayco en la lista de módulos y haga clic en **Instalar**.
-6. Siga los pasos de instalación y configure el plugin.
-7. Obtenga el **P_CUST_ID_CLIENTE**, **P_KEY**, **PUBLIC_KEY** y **PRIVATE_KEY** desde el panel de ePayco.
-8. Configure el plugin con los datos solicitados en el formulario.
+1. Descarga el plugin desde [GitHub](https://github.com/epayco/plugin_prestashop_pagos_divididos).
+2. Ingresa al administrador de PrestaShop.
+3. Navega a **Módulos y Servicios**.
+4. Carga el plugin en PrestaShop.
+5. Busca el plugin ePayco en la lista de módulos.
+6. Haz clic en **Instalar**.
+7. Haz clic en **Seguir con la Instalación**.
+8. Ingresa al panel de clientes de ePayco para obtener el `P_CUST_ID_CLIENTE`, `P_KEY`,  `PRIVATE_KEY` y  `PUBLIC_KEY`.
+9. Configura el plugin de ePayco ingresando los datos del formulario.
 
-## Configuración de Pagos Divididos
+## Pasos
 
-1. Acceda al panel de administración del plugin en PrestaShop.
-2. Diríjase a la sección de **Configuración de Pagos Divididos**.
-3. Introduzca los datos de los receptores, como el **ID de Receptor** y las **comisiones** asociadas.
-4. Configure las comisiones según los términos acordados (fijas o porcentuales).
-5. Verifique que los receptores estén correctamente registrados en el dashboard de ePayco.
-6. Guarde los cambios y pruebe el proceso de pago con pagos divididos.
+1. **Crear receptores**: Asegúrate de crear los receptores necesarios en tu cuenta de ePayco antes de proceder.
+2. **Configurar llaves**: Asegúrate de ingresar correctamente las llaves de ePayco en la configuración del plugin.
+3. **Realiza una prueba**: Una vez configurado, realiza una prueba de compra para verificar que los pagos se distribuyan correctamente.
+
+Si tienes alguna pregunta o problema, no dudes en ponerte en contacto con nuestro soporte técnico: [desarrollo@payco.co](mailto:desarrollo@payco.co).
+
+## Contacto
+
+Para soporte técnico o consultas, puedes escribir a: desarrollo@payco.co.
+
