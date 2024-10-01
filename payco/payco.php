@@ -756,14 +756,14 @@ class Payco extends PaymentModule
 
             $vendorsArraysWhithoutSplit = Db::getInstance()->executeS($sql_query);
 
-            // Agregar productos sin split al array de vendedores
+           
             foreach ($vendorsArraysWhithoutSplit as $receiver) {
                 $receiver_total_tax = floatval($receiver['product_tax']);
                 $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
                 $receiver_total = floatval($receiver['product_price']);
                 $receiver_feed = floatval($receiver['product_price']);
 
-                // Asegúrate de que el customer_id esté presente
+                
                 if (trim($this->p_cust_id_cliente) !== "") {
                     $vendorsArray[] = [
                         'id' => trim($this->p_cust_id_cliente),
@@ -773,20 +773,19 @@ class Payco extends PaymentModule
                         'fee' => strval(0)
                     ];
                 } else {
-                    // Agrega un mensaje de advertencia si el customer_id está vacío
+                    
                     error_log("Falta el merchantid en los productos sin split");
                 }
             }
 
-            var_dump($split); // Verifica el valor de $split
-            // Aquí puedes verificar y establecer si el split debe ser verdadero
+           
             if (count($vendorsArray) > 0) {
                 $split = true; // Esto se asegurará de que se establezca en true
             } else {
-                $split = false; // Esto puede ser opcional, ya que podría ser el valor predeterminado
+                $split = false; 
             }
 
-            // Después puedes seguir con el resto de tu lógica
+       
             if ($split) {
                 $new_array = str_replace('"', "'", json_encode($vendorsArray));
             } else {
@@ -795,9 +794,9 @@ class Payco extends PaymentModule
 
 
 
-            // Verificar si hay datos en $vendorsArray
-            var_dump($vendorsArray); // Verifica el contenido del array
-            var_dump($new_array); // Verifica el JSON generado
+            // // Verificar si hay datos en $vendorsArray
+            // var_dump($vendorsArray); // Verifica el contenido del array
+            // var_dump($new_array); // Verifica el JSON generado
 
             $myIp = $this->getCustomerIp();
             $is_split = count($vendorsArray) > 0 ? 'true' : 'false';
