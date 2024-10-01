@@ -24,7 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-<<div class="epayco-payment-option espacio">
+<div class="epayco-payment-option espacio">
     <img src="{$logo_url}" class="epayco-payment-logo hidden" alt="Logo" width="480">
 </div>
 
