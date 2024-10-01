@@ -793,6 +793,12 @@ class Payco extends PaymentModule
             }
 
 
+            if ($lang == "es") {
+                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png';
+            } else {
+                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-Ingles.png';
+                $lang = "en";
+            }
 
             // // Verificar si hay datos en $vendorsArray
             // var_dump($vendorsArray); // Verifica el contenido del array
