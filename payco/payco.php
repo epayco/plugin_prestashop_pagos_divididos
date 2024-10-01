@@ -585,6 +585,9 @@ class Payco extends PaymentModule
     /**
      * This hook is used to display the order confirmation page.
      */
+  /**
+     * This hook is used to display the order confirmation page.
+     */
     public function hookPaymentReturn($params)
     {
         if ($this->active == false)
@@ -614,10 +617,7 @@ class Payco extends PaymentModule
 			FROM `' . _DB_PREFIX_ . 'feature_lang`
 			WHERE `name` = ' . '"ePayco receiver"';
         $feature_id = Db::getInstance()->getValue($sql);
-        $products_info = Db::getInstance()->executeS(
-            '
-                
-            SELECT DISTINCT psod.`product_id`,      
+        $query = 'SELECT DISTINCT psod.`product_id`,      
                    psod.`product_quantity`,
                    psod.`total_price_tax_excl` AS "product_price",
                    psod.`total_price_tax_incl` AS "product_tax",
@@ -627,23 +627,28 @@ class Payco extends PaymentModule
             FROM `' . _DB_PREFIX_ . 'order_detail` psod 
                 LEFT JOIN `' . _DB_PREFIX_ . 'feature_product` psfp 
                     ON (psod.`product_id` = psfp.`id_product`)
+                LEFT JOIN `' . _DB_PREFIX_ . 'feature_value` psv 
+                    ON (psfp.`id_feature_value` = psv.`id_feature_value`) 
                 LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` psvl 
-                    ON (psfp.`id_feature_value` = psvl.`id_feature_value`) 
-                INNER JOIN `' . _DB_PREFIX_ . 'payco_split` psps 
+                    ON (psv.`id_feature_value` = psvl.`id_feature_value`) 
+                LEFT JOIN `' . _DB_PREFIX_ . 'payco_split` psps 
                     ON (psvl.`value` = psps.`customer_id`) 
-            WHERE psod.id_order = ' . (int) $extra2 . ' AND psfp.id_feature = ' . (int)$feature_id
-        );
+            WHERE psod.id_order = ' . (int) $extra2 . ' AND psps.typefeed !=0 
+            GROUP BY psod.`product_id`,psod.`product_quantity`,psod.`total_price_tax_excl`, 
+                psod.`total_price_tax_incl`,psfp.id_feature_value, psvl.value, psps.`feed`,
+                psps.`typefeed`
+            ';
+        $products_info = Db::getInstance()->executeS($query);
         $split = false;
         if (count($products_info) > 0) {
             $split = true;
         }
-
+        //var_dump($products_info);
+        //die();
         $emailComprador = $this->context->customer->email;
         $valorBaseDevolucion = $order->total_paid_tax_excl;
         $iva = $value - $valorBaseDevolucion;
         $cart = $this->context->cart;
-
-
 
         $iso = 'CO';
         if ($iva == 0) $valorBaseDevolucion = 0;
@@ -677,28 +682,21 @@ class Payco extends PaymentModule
                 $external = "false";
             }
 
-            if ($this->p_type_checkout == 1) {
-                $external = "true";
-            } else {
-                $external = "false";
-            }
-
             $descripcion = '';
             $productos = Db::getInstance()->executeS('
 			SELECT id_product FROM `' . _DB_PREFIX_ . 'cart_product`
 			WHERE `id_cart` = ' . (int) $extra1);
-
             $idproduct_without_split = '';
             foreach ($productos as $producto) {
-
+                // Your product id
                 $id_product = (int)$producto['id_product'];
-
+                // Language id
                 $lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
-
+                // Load product object
                 $product = new Product($id_product, false, $lang_id);
-
+                // Validate product object
                 if (Validate::isLoadedObject($product)) {
-
+                    // Get product name
                     $descripcion = $descripcion . $product->name . ', ';
                 }
                 $products_ids = array_column($products_info, 'product_id');
@@ -713,46 +711,60 @@ class Payco extends PaymentModule
                 EpaycoOrder::create($order->id, 1);
             }
 
+            $p_url_response = Context::getContext()->link->getModuleLink('payco', 'response');
+            $p_url_confirmation = Context::getContext()->link->getModuleLink('payco', 'confirmation');
+            $lang = $this->context->language->language_code;
 
 
             $vendorsArray = array();
             foreach ($products_info as $receiver) {
                 if ($receiver['split type'] == "01") {
-                    $receiver_total_tax =  floatval($receiver['product_tax']);
+                    $receiver_total_tax = floatval($receiver['product_tax']);
                     $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
-                    $receiver_total =  floatval($receiver['product_price']);
+                    $receiver_total = floatval($receiver['product_price']);
                     $receiver_feed = (floatval($receiver['fee value']));
                 } else {
                     $porcentaje_fee_value = ((100 - (int)($receiver['feed'])) * $value) / 100;
                     $receiver_total = $value - $porcentaje_fee_value;
                     $receiver_feed = (100 - (int)($receiver['feed']));
                 }
-                $other = array(
-                    'id' => $receiver['customer_id'],
-                    'total' => strval($receiver_total_tax),
-                    'iva' => strval($receiver_tax),
-                    'base_iva' =>  strval($receiver_total),
-                    'fee' => strval($receiver_feed)
-                );
-                array_push($vendorsArray, $other);
+
+                // Asegúrate de que el customer_id esté presente
+                if (isset($receiver['customer_id'])) {
+                    $other = array(
+                        'id' => $receiver['customer_id'],
+                        'total' => strval($receiver_total_tax),
+                        'iva' => strval($receiver_tax),
+                        'base_iva' => strval($receiver_total),
+                        'fee' => strval($receiver_feed)
+                    );
+                    array_push($vendorsArray, $other);
+                } else {
+                    // Agrega un mensaje de advertencia si el customer_id falta
+                    error_log("Falta el customer_id en el receiver: " . json_encode($receiver));
+                }
             }
 
             $sql_query = '
-                    SELECT DISTINCT psod.`product_id`,      
-                           psod.`product_quantity`,
-                           psod.`total_price_tax_excl` AS "product_price",
-                           psod.`total_price_tax_incl` AS "product_tax"
-                    FROM `' . _DB_PREFIX_ . 'order_detail` psod 
-                    WHERE psod.id_order = ' . (int)$extra2
-                . ' AND psod.product_id  IN (' . $idproduct_without_split . ')';
+            SELECT DISTINCT psod.`product_id`,      
+                   psod.`product_quantity`,
+                   psod.`total_price_tax_excl` AS "product_price",
+                   psod.`total_price_tax_incl` AS "product_tax"
+            FROM `' . _DB_PREFIX_ . 'order_detail` psod 
+            WHERE psod.id_order = ' . (int)$extra2 . ' 
+            AND psod.product_id IN (' . $idproduct_without_split . ')';
+
             $vendorsArraysWhithoutSplit = Db::getInstance()->executeS($sql_query);
 
+           
             foreach ($vendorsArraysWhithoutSplit as $receiver) {
-                $receiver_total_tax =  floatval($receiver['product_tax']);
+                $receiver_total_tax = floatval($receiver['product_tax']);
                 $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
-                $receiver_total =  floatval($receiver['product_price']);
+                $receiver_total = floatval($receiver['product_price']);
                 $receiver_feed = floatval($receiver['product_price']);
-                if (count($vendorsArray) > 0) {
+
+                
+                if (trim($this->p_cust_id_cliente) !== "") {
                     $vendorsArray[] = [
                         'id' => trim($this->p_cust_id_cliente),
                         'total' => strval($receiver_total_tax),
@@ -760,18 +772,26 @@ class Payco extends PaymentModule
                         'base_iva' => strval($receiver_total),
                         'fee' => strval(0)
                     ];
+                } else {
+                    
+                    error_log("Falta el merchantid en los productos sin split");
                 }
             }
 
+           
+            if (count($vendorsArray) > 0) {
+                $split = true; // Esto se asegurará de que se establezca en true
+            } else {
+                $split = false; 
+            }
+
+       
             if ($split) {
                 $new_array = str_replace('"', "'", json_encode($vendorsArray));
             } else {
                 $new_array = json_encode([]);
             }
 
-            $p_url_response = Context::getContext()->link->getModuleLink('payco', 'response');
-            $p_url_confirmation = Context::getContext()->link->getModuleLink('payco', 'confirmation');
-            $lang = $this->context->language->language_code;
 
             if ($lang == "es") {
                 $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png';
@@ -780,59 +800,53 @@ class Payco extends PaymentModule
                 $lang = "en";
             }
 
+            // // Verificar si hay datos en $vendorsArray
+            // var_dump($vendorsArray); // Verifica el contenido del array
+            // var_dump($new_array); // Verifica el JSON generado
 
             $myIp = $this->getCustomerIp();
-            $is_split = 'false';
-            if (count($vendorsArray) > 0) {
-                $is_split = 'true';
-            }
-            $this->smarty->assign(
-                array(
-                    'isSplit' =>  $is_split,
-                    'split_receivers' => strval($new_array),
-                    'this_path_bw' => $this->_path,
-                    'p_signature' => $p_signature,
-                    'total_to_pay' => $value,
-                    'status' => 'ok',
-                    'refVenta' => $refVenta,
-                    'custemail' => $emailComprador,
-                    'extra1' => $extra1,
-                    'extra2' => $extra2,
-                    'total' => $value,
-                    'currency' => $currency,
-                    'iso' => $iso,
-                    'iva' => $iva,
-                    'baseDevolucionIva' => $valorBaseDevolucion,
-                    'merchantid' => trim($this->p_cust_id_cliente),
-                    'external' => $external,
-                    'merchanttest' => $test,
-                    'p_key' => trim($this->p_key),
-                    'public_key' => trim($this->public_key),
-                    'private_key' => trim($this->private_key),
-                    'custip' => $_SERVER['REMOTE_ADDR'],
-                    'custname' => $this->context->customer->firstname . " " . $this->context->customer->lastname,
-                    'p_url_response' => $p_url_response,
-                    'p_url_confirmation' => $p_url_confirmation,
-                    'p_billing_email' => $this->context->customer->email,
-                    'p_billing_name' => $this->context->customer->firstname,
-                    'p_billing_last_name' => $this->context->customer->lastname,
-                    'p_billing_address' => $addressdelivery->address1 . " " . $addressdelivery->address2,
-                    'p_billing_city' => $addressdelivery->city,
-                    'p_billing_country' => $addressdelivery->id_state,
-                    'p_billing_phone' => "",
-                    'lang' => $lang,
-                    'descripcion' => $descripcion,
-                    'url_button' => $url_button,
-                    'ip' => $myIp
-                )
-            );
-        } else {
-            $this->smarty->assign('status', 'failed');
+            $is_split = count($vendorsArray) > 0 ? 'true' : 'false';
+            $this->smarty->assign(array(
+                'isSplit' => $is_split,
+                'split_receivers' => strval($new_array),
+                'this_path_bw' => $this->_path,
+                'p_signature' => $p_signature,
+                'total_to_pay' => Tools::displayPrice($value, $currence, false),
+                'status' => 'ok',
+                'refVenta' => $refVenta,
+                'custemail' => $emailComprador,
+                'extra1' => $extra1,
+                'extra2' => $extra2,
+                'total' => $value,
+                'currency' => $currency,
+                'iso' => $iso,
+                'iva' => $iva,
+                'baseDevolucionIva' => $valorBaseDevolucion,
+                'merchantid' => trim($this->p_cust_id_cliente),
+                'external' => $external,
+                'merchanttest' => $test,
+                'p_key' => trim($this->p_key),
+                'public_key' => trim($this->public_key),
+                'private_key' => trim($this->private_key),
+                'custip' => $_SERVER['REMOTE_ADDR'],
+                'custname' => $this->context->customer->firstname . " " . $this->context->customer->lastname,
+                'p_url_response' => $p_url_response,
+                'p_url_confirmation' => $p_url_confirmation,
+                'p_billing_email' => $this->context->customer->email,
+                'p_billing_name' => $this->context->customer->firstname,
+                'p_billing_last_name' => $this->context->customer->lastname,
+                'p_billing_address' => $addressdelivery->address1 . " " . $addressdelivery->address2,
+                'p_billing_city' => $addressdelivery->city,
+                'p_billing_country' => $addressdelivery->id_state,
+                'p_billing_phone' => "",
+                'lang' => $lang,
+                'descripcion' => $descripcion,
+                'ip' => $myIp
+            ));
         }
-
+        // Redirige al checkout
         return $this->display(__FILE__, 'views/templates/hook/payment_return.tpl');
     }
-
 
     private function is_blank($var)
     {
@@ -911,9 +925,6 @@ class Payco extends PaymentModule
         }
 
 
-
-
-
         if ($ref_payco != "" and $url != "") {
             $responseData = $this->PostCurl($url, false, $this->StreamContext());
             $jsonData = @json_decode($responseData, true);
@@ -927,13 +938,13 @@ class Payco extends PaymentModule
         }
     }
 
-    public function PaymentSuccess($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code, $x_franchise)
+    public function PaymentSuccess($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code)
     {
-        $this->Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code, $x_franchise);
+        $this->Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code);
     }
 
 
-    private function Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $old_ref_payco, $x_approval_code, $x_franchise)
+    private function Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $old_ref_payco, $x_approval_code)
     {
         $config = Configuration::getMultiple(array('P_CUST_ID_CLIENTE', 'P_KEY', 'PUBLIC_KEY', 'P_TEST_REQUEST', 'P_STATE_END_TRANSACTION'));
         $x_cust_id_cliente = trim($config['P_CUST_ID_CLIENTE']);
@@ -1204,5 +1215,26 @@ class Payco extends PaymentModule
         ));
 
         return $context;
+    }
+
+    public function SplitCustomer($customer_id, $fee, $typefeed)
+    {
+        $data = SplitRules::create($customer_id, $fee, $typefeed);
+        var_dump($data);
+        die();
+    }
+
+    public function SplitCustomerUpdate($customer_id, $fee, $typefeed)
+    {
+        $data = SplitRules::SplitCustomerUpdate($customer_id, $fee, $typefeed);
+        var_dump($data);
+        die();
+    }
+
+    public function SplitCustomerDelete($customer_id, $id_)
+    {
+        $data = SplitRules::deleteSplitRule($customer_id, $id_);
+        var_dump($data);
+        die();
     }
 }

@@ -35,7 +35,7 @@
 <script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return openChekout();">
-        <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png" />
+    <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png"/>
     </a>
     <script type="text/javascript">
         var handler = ePayco.checkout.configure({
