@@ -98,7 +98,7 @@
                             <div class="row">
                                 <div class="container">
                                     <div class="col-lg-8 col-lg-offset-2">
-                                        <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/paymentLogo.svg" height="40px" style="margin-top:10px; float:right">
+                                        <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/paymentLogo.svg" style="margin-top: 10px; margin-left: auto; margin-right: auto; display: block; width: 730px;"> 
                                     </div>
                                 </div>
                             </div>
@@ -120,6 +120,10 @@
                     //llave publica del comercio
                     //Referencia de payco que viene por url
                     var ref_payco = getQueryParam('ref_payco');
+                    if(ref_payco == "ref_payco"){
+                        let count = window.location.search.search('ref_payco') + 10;
+                        ref_payco = window.location.search.slice( count );
+                    }
                     //Url Rest Metodo get, se pasa la llave y la ref_payco como paremetro
                     var urlapp = "https://secure.epayco.io/validation/v1/reference/"+ref_payco;
                     
@@ -163,5 +167,3 @@
 </script>
 </body>
 </html>
-
-
