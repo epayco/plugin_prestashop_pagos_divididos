@@ -32,7 +32,7 @@
    <br><small class="epayco-subtitle"> Si no se cargan automáticamente, de clic en el botón "Pagar con ePayco"</small>
 </p>
 
-<script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
+<script type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return openChekout();">
     <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png"/>
@@ -125,7 +125,7 @@
             headers["privatekey"] = privatekey;
             headers["apikey"] = apikey;
             var payment =   function (){
-                return  fetch("https://cms.epayco.io/checkout/payment/session", {
+                return  fetch("https://cms.epayco.co/checkout/payment/session", {
                     method: "POST",
                     body: JSON.stringify(info),
                     headers
