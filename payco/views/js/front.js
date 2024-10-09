@@ -25,3 +25,17 @@
 * Don't forget to prefix your containers with your own identifier
 * to avoid any conflicts with others containers.
 */
+document.addEventListener('DOMContentLoaded', function() {
+    var epaycoOption = document.querySelector('.epayco-payment-option input[type="radio"]');
+    var epaycoLogo = document.querySelector('.epayco-payment-logo');
+
+    if (epaycoOption) {
+        epaycoOption.addEventListener('change', function() {
+            if (this.checked) {
+                epaycoLogo.classList.remove('hidden');
+            } else {
+                epaycoLogo.classList.add('hidden');
+            }
+        });
+    }
+});
