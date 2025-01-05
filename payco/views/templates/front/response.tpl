@@ -98,7 +98,9 @@
                             <div class="row">
                                 <div class="container">
                                     <div class="col-lg-8 col-lg-offset-2">
-                                        <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/paymentLogo.svg" style="margin-top: 10px; margin-left: auto; margin-right: auto; display: block; width: 730px;"> 
+                                        <img src="{constant('_EPAYCO_MULTIMEDIA_URL_')}/plugins-sdks/paymentLogo.svg" 
+                                         style="margin-top: 10px; margin-left: auto; margin-right: auto; display: block; width: 730px;" 
+                                         alt="Logo de ePayco">
                                     </div>
                                 </div>
                             </div>
@@ -125,7 +127,7 @@
                         ref_payco = window.location.search.slice( count );
                     }
                     //Url Rest Metodo get, se pasa la llave y la ref_payco como paremetro
-                    var urlapp = "https://secure.epayco.co/validation/v1/reference/"+ref_payco;
+                    var urlapp = "https://secure.epayco.io/validation/v1/reference/"+ref_payco;
                     
                     $.get(urlapp, function(response,error) {
 

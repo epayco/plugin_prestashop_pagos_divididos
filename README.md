@@ -23,13 +23,13 @@ Este plugin permite gestionar pagos divididos en PrestaShop, facilitando a los c
 
 ## Instalación
 
-1. Descarga el plugin desde [GitHub](https://github.com/epayco/plugin_prestashop_pagos_divididos).
-2. Ingresa al administrador de PrestaShop.
-3. Navega a **Módulos y Servicios**.
-4. Carga el plugin en PrestaShop.
-5. Busca el plugin ePayco en la lista de módulos.
-6. Haz clic en **Instalar**.
-7. Haz clic en **Seguir con la Instalación**.
+1. [Descarga el plugin.](https://github.com/epayco/plugin_prestashop_pagos_divididos).
+2. Descomprimir el archivo descargado y luego comprimes la carpeta llamada payco.
+3. Ingresa al administrador de PrestaShop.
+4. Navega a **Módulos y Servicios**.
+5. Carga el plugin en PrestaShop.
+6. Busca el plugin ePayco en la lista de módulos.
+7. Debes crear cada receptor o comercio registrado en tu cuenta de ePayco, con los cuales se dividirá el pago. 
 8. Ingresa al panel de clientes de ePayco para obtener el `P_CUST_ID_CLIENTE`, `P_KEY`,  `PRIVATE_KEY` y  `PUBLIC_KEY`.
 9. Configura el plugin de ePayco ingresando los datos del formulario.
 
