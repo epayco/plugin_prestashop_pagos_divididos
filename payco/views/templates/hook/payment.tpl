@@ -30,7 +30,7 @@
 			<a class="bankwire" 
 				 href="{$link->getModuleLink('payco', 'payment')|escape:'html'}" 
 				 title="{l s='ePayco Reciba pagos online con tarjetas de credito, debito PSE, Efectivo y SafetyPay en menos de 24 Horas con multiples herramientas.' mod='payco'}">	
-				 <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png" />			
+				 <img src= "{constant('_EPAYCO_MULTIMEDIA_URL_')}/plugins-sdks/Boton-color-espanol.png" />			
 				{l s='ePayco' mod='payco'}&nbsp;
 				<span style="font-size: 14px;">
 					{l s='(Reciba pagos online con tarjetas de Crédito, Debito PSE, Efectivo y SafetyPay en menos de 24 Horas con multiples herramientas).' mod='payco'}

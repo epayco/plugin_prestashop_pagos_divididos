@@ -74,6 +74,10 @@ class Payco extends PaymentModule
         parent::__construct();
         $this->displayName = $this->l('ePayco pagos divididos');
         $this->description = $this->l('ePayco: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.');
+                 // Definir constante global
+         if (!defined('_EPAYCO_MULTIMEDIA_URL_')) {
+            define('_EPAYCO_MULTIMEDIA_URL_', 'https://multimedia.epayco.co');
+         }
         $this->confirmUninstall = $this->l('Esta seguro de desistalar este modulo?');
 
         $config = Configuration::getMultiple(array(
@@ -568,7 +572,7 @@ class Payco extends PaymentModule
         }
         $this->context->smarty->assign(array(
             "titulo" => $this->p_titulo,
-            "logo_url" => 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/paymentLogo.svg'
+            "logo_url" => _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/paymentLogo.svg',
         ));
         $modalOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
 
@@ -794,9 +798,12 @@ class Payco extends PaymentModule
 
 
             if ($lang == "es") {
-                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png';
+                // Si el idioma es español, usa el botón en español
+                $url_button = _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/Boton-color-espanol.png';
             } else {
-                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-Ingles.png';
+                // Si el idioma no es español, usa el botón en inglés
+                $url_button = _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/Boton-color-Ingles.png';
+                // Reasignar $lang a "en" (opcional, si es necesario en tu lógica)
                 $lang = "en";
             }
 

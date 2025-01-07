@@ -29,13 +29,13 @@
 </div>
 <p style="text-align: center;" class="epayco-title">
     <span class="animated-points">Cargando metodos de pago</span>
-   <br><small class="epayco-subtitle"> Si no se cargan automáticamente, de clic en el botón "Pagar con ePayco"</small>
+   <br><small class="epayco-subtitle"> Si no se cargan autom谩ticamente, de clic en el bot贸n "Pagar con ePayco"</small>
 </p>
 
 <script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return openChekout();">
-    <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png"/>
+    <img src= "{constant('_EPAYCO_MULTIMEDIA_URL_')}/plugins-sdks/Boton-color-espanol.png" />
     </a>
     <script type="text/javascript">
         var handler = ePayco.checkout.configure({
