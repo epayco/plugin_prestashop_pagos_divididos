@@ -74,6 +74,10 @@ class Payco extends PaymentModule
         parent::__construct();
         $this->displayName = $this->l('ePayco pagos divididos');
         $this->description = $this->l('ePayco: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.');
+        // Definir constante global
+        if (!defined('_EPAYCO_MULTIMEDIA_URL_')) {
+            define('_EPAYCO_MULTIMEDIA_URL_', 'https://multimedia.epayco.co');
+        }
         $this->confirmUninstall = $this->l('Esta seguro de desistalar este modulo?');
 
         $config = Configuration::getMultiple(array(
@@ -568,7 +572,7 @@ class Payco extends PaymentModule
         }
         $this->context->smarty->assign(array(
             "titulo" => $this->p_titulo,
-            "logo_url" => 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/paymentLogo.svg'
+            "logo_url" => _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/paymentLogo.svg',
         ));
         $modalOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
 
@@ -585,7 +589,7 @@ class Payco extends PaymentModule
     /**
      * This hook is used to display the order confirmation page.
      */
-  /**
+    /**
      * This hook is used to display the order confirmation page.
      */
     public function hookPaymentReturn($params)
@@ -756,14 +760,14 @@ class Payco extends PaymentModule
 
             $vendorsArraysWhithoutSplit = Db::getInstance()->executeS($sql_query);
 
-           
+
             foreach ($vendorsArraysWhithoutSplit as $receiver) {
                 $receiver_total_tax = floatval($receiver['product_tax']);
                 $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
                 $receiver_total = floatval($receiver['product_price']);
                 $receiver_feed = floatval($receiver['product_price']);
 
-                
+
                 if (trim($this->p_cust_id_cliente) !== "") {
                     $vendorsArray[] = [
                         'id' => trim($this->p_cust_id_cliente),
@@ -773,19 +777,19 @@ class Payco extends PaymentModule
                         'fee' => strval(0)
                     ];
                 } else {
-                    
+
                     error_log("Falta el merchantid en los productos sin split");
                 }
             }
 
-           
+
             if (count($vendorsArray) > 0) {
                 $split = true; // Esto se asegurará de que se establezca en true
             } else {
-                $split = false; 
+                $split = false;
             }
 
-       
+
             if ($split) {
                 $new_array = str_replace('"', "'", json_encode($vendorsArray));
             } else {
@@ -794,9 +798,12 @@ class Payco extends PaymentModule
 
 
             if ($lang == "es") {
-                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png';
+                // Si el idioma es español, usa el botón en español
+                $url_button = _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/Boton-color-espanol.png';
             } else {
-                $url_button = 'https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-Ingles.png';
+                // Si el idioma no es español, usa el botón en inglés
+                $url_button = _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/Boton-color-Ingles.png';
+                // Reasignar $lang a "en" (opcional, si es necesario en tu lógica)
                 $lang = "en";
             }
 
@@ -817,6 +824,7 @@ class Payco extends PaymentModule
                 'custemail' => $emailComprador,
                 'extra1' => $extra1,
                 'extra2' => $extra2,
+                'extra3' => $refVenta,
                 'total' => $value,
                 'currency' => $currency,
                 'iso' => $iso,
@@ -1094,6 +1102,8 @@ class Payco extends PaymentModule
                         if ($orderStatusEndId) {
 
                             $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
+                            echo "Cambiado estado de orden en el historial";
+                            die;
                         } else {
                             throw new PrestaShopException('No se encontró un estado de orden con el nombre: ' . $orderStatusName);
                         }
@@ -1146,6 +1156,9 @@ class Payco extends PaymentModule
                                 throw new PrestaShopException('No se encontró un estado de orden con el nombre: ' . $orderStatusName);
                             }
                         }
+                    }else{
+                        echo("Confirmacion aceptada");
+                        die;
                     }
                 }
             }

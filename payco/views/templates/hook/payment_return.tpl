@@ -29,13 +29,13 @@
 </div>
 <p style="text-align: center;" class="epayco-title">
     <span class="animated-points">Cargando metodos de pago</span>
-   <br><small class="epayco-subtitle"> Si no se cargan automáticamente, de clic en el botón "Pagar con ePayco"</small>
+   <br><small class="epayco-subtitle"> Si no se cargan automaticamente, de clic en el boton "Pagar con ePayco"</small>
 </p>
 
 <script type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return openChekout();">
-    <img src="https://multimedia-epayco.s3.amazonaws.com/plugins-sdks/Boton-color-espanol.png"/>
+    <img src= "{constant('_EPAYCO_MULTIMEDIA_URL_')}/plugins-sdks/Boton-color-espanol.png" />
     </a>
     <script type="text/javascript">
         var handler = ePayco.checkout.configure({
@@ -84,6 +84,7 @@
             lang: "{$lang|escape:'htmlall':'UTF-8'}",
             extra1: "{$extra1|escape:'htmlall':'UTF-8'}",
             extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
+            extra3: "{$extra3|escape:'htmlall':'UTF-8 '}",
             autoclick: "true",
             ip:  "{$ip|escape:'htmlall':'UTF-8'}",
             test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString(),
@@ -100,7 +101,7 @@
                 data.split_rule= "multiple",
                 data.split_receivers= split_receivers
             }
-           
+        
               
 
         const apiKey = "{$public_key}";
