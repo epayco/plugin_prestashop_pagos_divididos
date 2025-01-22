@@ -29,10 +29,10 @@
 </div>
 <p style="text-align: center;" class="epayco-title">
     <span class="animated-points">Cargando metodos de pago</span>
-   <br><small class="epayco-subtitle"> Si no se cargan autom谩ticamente, de clic en el bot贸n "Pagar con ePayco"</small>
+   <br><small class="epayco-subtitle"> Si no se cargan automaticamente, de clic en el boton "Pagar con ePayco"</small>
 </p>
 
-<script type="text/javascript" src="https://epayco-checkout-testing.s3.amazonaws.com/checkout.preprod.js"></script>
+<script type="text/javascript" src="https://checkout.epayco.co/checkout.js"></script>
 <form id="epayco_form" style="text-align: center;">
      <a href="#" onclick="return openChekout();">
     <img src= "{constant('_EPAYCO_MULTIMEDIA_URL_')}/plugins-sdks/Boton-color-espanol.png" />
@@ -84,6 +84,7 @@
             lang: "{$lang|escape:'htmlall':'UTF-8'}",
             extra1: "{$extra1|escape:'htmlall':'UTF-8'}",
             extra2: "{$extra2|escape:'htmlall':'UTF-8'}",
+            extra3: "{$extra3|escape:'htmlall':'UTF-8 '}",
             autoclick: "true",
             ip:  "{$ip|escape:'htmlall':'UTF-8'}",
             test: "{$merchanttest|escape:'htmlall':'UTF-8'}".toString(),
@@ -100,7 +101,7 @@
                 data.split_rule= "multiple",
                 data.split_receivers= split_receivers
             }
-           
+        
               
 
         const apiKey = "{$public_key}";
@@ -125,7 +126,7 @@
             headers["privatekey"] = privatekey;
             headers["apikey"] = apikey;
             var payment =   function (){
-                return  fetch("https://cms.epayco.io/checkout/payment/session", {
+                return  fetch("https://cms.epayco.co/checkout/payment/session", {
                     method: "POST",
                     body: JSON.stringify(info),
                     headers
