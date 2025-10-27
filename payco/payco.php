@@ -731,7 +731,7 @@ class Payco extends PaymentModule
             $dataScript  = array(
                 "name"=>$this->string_sanitize($descripcion),
                 "description"=>$this->string_sanitize($descripcion),
-                "invoice"=>(string)$refVenta.$date->getTimestamp(),
+                "invoice"=>(string)$refVenta,
                 "currency"=>$currency,
                 "amount"=>floatval(number_format($value, 2, '.', '')),
                 "taxBase"=>floatval(number_format($valorBaseDevolucion, 2, '.', '')),
@@ -1350,3 +1350,4 @@ class Payco extends PaymentModule
     }
 
 }
+
