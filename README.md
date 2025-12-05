@@ -37,11 +37,13 @@ Este plugin permite gestionar pagos divididos en PrestaShop, facilitando a los c
 
 1. **Crear receptores**: Asegúrate de crear los receptores necesarios en tu cuenta de ePayco antes de proceder.
 2. **Configurar llaves**: Asegúrate de ingresar correctamente las llaves de ePayco en la configuración del plugin.
-3. **Realiza una prueba**: Una vez configurado, realiza una prueba de compra para verificar que los pagos se distribuyan correctamente.
+3. **Configurar Productos**: Ingresa al producto -> datos -> Añadir característica y completa los datos
+- Caracteristica "ePayco receiver"
+- Selecciona el recibidor asociado al producto como valor predefinido
+4. **Realiza una prueba**: Una vez configurado, realiza una prueba de compra para verificar que los pagos se distribuyan correctamente.
 
-Si tienes alguna pregunta o problema, no dudes en ponerte en contacto con nuestro soporte técnico: [desarrollo@payco.co](mailto:desarrollo@payco.co).
+Si tienes alguna pregunta o problema, no dudes en ponerte en contacto con nuestro soporte técnico: [desarrollo@epayco.com](mailto:desarrollo@epayco.com).
 
 ## Contacto
 
-Para soporte técnico o consultas, puedes escribir a: desarrollo@payco.co.
-
+Para soporte técnico o consultas, puedes escribir a: desarrollo@epayco.com.
