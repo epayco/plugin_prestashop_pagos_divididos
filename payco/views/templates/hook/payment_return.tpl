@@ -90,7 +90,7 @@
     style="text-align: center;font-size: large;font-weight: 900;">
         <p class="warning">
             {l s='Hemos notado un problema con tu orden, solicitamos contactar a nuestro departamento de Soporte' mod='epayco_agregador'}
-            {l s='{$errorMessage}' mod='epayco_agregador'}.
+            {l s=$errorMessage mod='epayco_agregador'}.
         </p>
     </div>
 </div>

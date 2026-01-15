@@ -721,7 +721,7 @@ class Payco extends PaymentModule
             }
 
             $myIp = $this->getCustomerIp();
-            $is_split = count($receiversArray) > 0 ? 'true' : 'false';
+            $is_split = isset($receiversArray) ? (count($receiversArray) > 0 ? 'true' : 'false') : 'false';
             $tokenResponse = $this->epaycoBerarToken(trim($this->public_key),trim($this->private_key));
             $token = null;
             if(isset($tokenResponse['token'])){
@@ -765,14 +765,14 @@ class Payco extends PaymentModule
             if($is_split){
                 $dataScript["splitPayment"] = [
                     "type" => $this->p_split_type  ==  '1' ? 'amount' : 'percentage',
-                    "receivers" =>$receiversArray
+                    "receivers" => isset($receiversArray) ? $receiversArray : []
                 ];
            }
 
             $checkoutSessionResponse = $this->epaycoSessionCheckout($token, $dataScript);
             $sessionId = null;
             if(isset($checkoutSessionResponse['success'])){
-                $sessionId = $checkoutSessionResponse["data"]['sessionId'];
+                $sessionId = isset($checkoutSessionResponse["data"]['sessionId']) ? $checkoutSessionResponse["data"]['sessionId'] : null;
             }else{
                 $messageError = $checkoutSessionResponse['textResponse'];
                 $errorMessage = "";
@@ -801,7 +801,6 @@ class Payco extends PaymentModule
                 'test' => $test,
             );
             $checkout =  base64_encode(json_encode($payload));      
-
             $this->smarty->assign(
                 array(
                     'this_path_bw' => $this->_path,
