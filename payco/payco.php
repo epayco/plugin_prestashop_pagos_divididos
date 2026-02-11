@@ -1158,7 +1158,7 @@ class Payco extends PaymentModule
         if (!isset($validation)) {
             $validation = false;
         }
-   
+     
         if ($x_signature == $signature && $validation) {
             $current_state = $order->current_state;
 
