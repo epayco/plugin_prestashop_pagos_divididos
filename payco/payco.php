@@ -55,6 +55,7 @@ class Payco extends PaymentModule
     public $p_url_confirmation;
     public $p_state_end_transaction;
     public $p_titulo;
+	public $lenguaje;
 
 
     public function __construct()
@@ -88,6 +89,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST',
             'P_TITULO',
             //'P_SPLIT_PRIMARY_RECEIVER_FEE',
+			'LENGUAJE',
             'P_STATE_END_TRANSACTION',
             'p_split_type',
             'P_TYPE_CHECKOUT',
@@ -121,7 +123,8 @@ class Payco extends PaymentModule
             $this->p_reduce_stock_pending = $config['P_REDUCE_STOCK_PENDING'];
         if (isset($config['p_split_type']))
             $this->p_split_type = $config['p_split_type'];
-
+		if (isset($config['LENGUAJE']))
+            $this->lenguaje = $config['LENGUAJE'];
         if (!isset($this->p_cust_id_cliente) or !isset($this->p_key) or !isset($this->public_key))
             $this->warning = $this->l('P_CUST_ID_CLIENTE, P_KEY, PRIVATE_KEY y PUBLIC_KEY deben estar configurados para utilizar este módulo correctamente');
 
@@ -153,6 +156,7 @@ class Payco extends PaymentModule
         Configuration::updateValue('P_TYPE_CHECKOUT', false);
         Configuration::updateValue('P_TEST_REQUEST', false);
         Configuration::updateValue('P_STATE_END_TRANSACTION', '');
+		Configuration::updateValue('LENGUAJE', false);
         //Configuration::updateValue('P_SPLIT_PRIMARY_RECEIVER_FEE', '');
         Configuration::updateValue('p_split_type', true);
         Configuration::updateValue('P_REDUCE_STOCK_PENDING', true);
@@ -378,6 +382,24 @@ class Payco extends PaymentModule
 
                         ),
                     ),
+					array(
+                        'type' => 'radio',
+                        'label' => $this->trans('Idioma del checkout', array(), 'Modules.Payment.Admin'),
+                        'name' => "LENGUAJE",
+                        'is_bool' => true,
+                        'values' => array(
+                            array(
+                                'id' => 'LANGUAJE_ES',
+                                'value' => true,
+                                'label' => $this->trans('Español', array(), 'Modules.Payment.Admin'),
+                            ),
+                            array(
+                                'id' => 'LANGUAJE_EN',
+                                'value' => false,
+                                'label' => $this->trans('Ingles', array(), 'Modules.Payment.Admin'),
+                            )
+                        ),
+                    ),
                     /*array(
                         'type' => 'text',
                         'label' => $this->trans('P_SPLIT_PRIMARY_RECEIVER_FEE', array(), 'Modules.Payco.Admin'),
@@ -487,6 +509,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST' => Tools::getValue('P_TEST_REQUEST', Configuration::get('P_TEST_REQUEST')),
             'P_TYPE_CHECKOUT' => Tools::getValue('P_TYPE_CHECKOUT', Configuration::get('P_TYPE_CHECKOUT')),
             'P_STATE_END_TRANSACTION' => Tools::getValue('P_STATE_END_TRANSACTION', Configuration::get('P_STATE_END_TRANSACTION')),
+			'LENGUAJE' => Tools::getValue('LENGUAJE', Configuration::get('LENGUAJE')),
             //'P_SPLIT_PRIMARY_RECEIVER_FEE' => Tools::getValue('P_SPLIT_PRIMARY_RECEIVER_FEE', Configuration::get('P_SPLIT_PRIMARY_RECEIVER_FEE')),
             'p_split_type' => Tools::getValue('p_split_type', Configuration::get('p_split_type')),
             'P_REDUCE_STOCK_PENDING' => Tools::getValue('P_REDUCE_STOCK_PENDING', Configuration::get('P_REDUCE_STOCK_PENDING'))
@@ -728,6 +751,12 @@ class Payco extends PaymentModule
                 $lang = "en";
             }
 
+			if ($this->lenguaje == 1) {
+                $lenguaje = "es";
+            } else {
+                $lenguaje = "en";
+            }
+
             $myIp = $this->getCustomerIp();
             $is_split = isset($receiversArray) ? (count($receiversArray) > 0 ? 'true' : 'false') : 'false';
             $tokenResponse = $this->epaycoBerarToken(trim($this->public_key),trim($this->private_key));
@@ -760,10 +789,10 @@ class Payco extends PaymentModule
                  "extras" => [
                     "extra1" => (string)$extra1,
                     "extra2" => (string)$extra2,
-                    "extra3" => $lang
+                    "extra3" => $lenguaje
                 ],
                 "extrasEpayco" => [
-                    "extra5" => "P24"
+                    "extra5" => "P25"
                 ],
                 "epaycoMethodsDisable" => [],
                 "method"=> "POST",
@@ -1470,4 +1499,5 @@ class Payco extends PaymentModule
     }
 
 }
+
 
