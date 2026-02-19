@@ -32,12 +32,6 @@
 			<input type="text" name="customer_id_" id="customer_id_">
 		</div>
 		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
-			<h4>tipo</h4>
-			<select name="typefeed_">
-				<option value="01">fijo</option>
-			</select>
-		</div>
-		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
 			<h4>Valor</h4>
 			<input type="text" name="feed_" id="feed_">
 		</div>
@@ -52,13 +46,10 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"></script>
 		<script type="text/javascript">
 		$(document).ready( function(){
-
 			const $checkout_form = $( '#myform2' );
 			$checkout_form.on('submit', function (event) {
 			event.preventDefault();
-
 			$(':input[type="submit"]').prop('disabled', true);
-
 			var url_update=$("#url_update").text();
 			var customer_id_ = document.getElementById('customer_id_').value.replace(/[ -]/g, "");
 			var feed_ = document.getElementById('feed_').value.replace(/[ -]/g, "");

@@ -55,6 +55,7 @@ class Payco extends PaymentModule
     public $p_url_confirmation;
     public $p_state_end_transaction;
     public $p_titulo;
+	public $language_p;
 
 
     public function __construct()
@@ -88,6 +89,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST',
             'P_TITULO',
             //'P_SPLIT_PRIMARY_RECEIVER_FEE',
+			'LENGUAJE_PAYCO',
             'P_STATE_END_TRANSACTION',
             'p_split_type',
             'P_TYPE_CHECKOUT',
@@ -121,7 +123,8 @@ class Payco extends PaymentModule
             $this->p_reduce_stock_pending = $config['P_REDUCE_STOCK_PENDING'];
         if (isset($config['p_split_type']))
             $this->p_split_type = $config['p_split_type'];
-
+		if (isset($config['LENGUAJE_PAYCO']))
+            $this->language_p = $config['LENGUAJE_PAYCO'];
         if (!isset($this->p_cust_id_cliente) or !isset($this->p_key) or !isset($this->public_key))
             $this->warning = $this->l('P_CUST_ID_CLIENTE, P_KEY, PRIVATE_KEY y PUBLIC_KEY deben estar configurados para utilizar este módulo correctamente');
 
@@ -136,8 +139,8 @@ class Payco extends PaymentModule
     public function install()
     {
         if ((int)Configuration::get('payco') == 1) {
-            $this->_errors[] = $this->l('El modulo ePayco actualmente ya esta instado');
-            return false;
+            //$this->_errors[] = $this->l('El modulo ePayco actualmente ya esta instado');
+            //return false;
         }
 
         if (extension_loaded('curl') == false) {
@@ -153,6 +156,7 @@ class Payco extends PaymentModule
         Configuration::updateValue('P_TYPE_CHECKOUT', false);
         Configuration::updateValue('P_TEST_REQUEST', false);
         Configuration::updateValue('P_STATE_END_TRANSACTION', '');
+		Configuration::updateValue('LENGUAJE_PAYCO', false);
         //Configuration::updateValue('P_SPLIT_PRIMARY_RECEIVER_FEE', '');
         Configuration::updateValue('p_split_type', true);
         Configuration::updateValue('P_REDUCE_STOCK_PENDING', true);
@@ -169,29 +173,31 @@ class Payco extends PaymentModule
         Configuration::updateValue('payco', true);
         return parent::install() &&
             $this->registerHook('header') &&
-            $this->registerHook('backOfficeHeader') &&
+            $this->registerHook('displayBackOfficeHeader') &&
             $this->registerHook('payment') &&
             $this->registerHook('paymentReturn') &&
-            $this->registerHook('paymentOptions');
+            $this->registerHook('paymentOptions') &&
+            $this->registerHook('actionOrderStatusPostUpdate') &&
+            $this->registerHook('actionOrderSlipAdd');
     }
 
     public function uninstall()
     {
-        CreditCard_Order::remove();
-        CreditCard_OrderState::remove();
-        Configuration::deleteByName('PAYCO_LIVE_MODE');
-        Configuration::deleteByName('P_TITULO');
-        Configuration::deleteByName('P_CUST_ID_CLIENTE');
-        Configuration::deleteByName('P_KEY');
-        Configuration::deleteByName('PUBLIC_KEY');
-        Configuration::deleteByName('PRIVATE_KEY');
-        Configuration::deleteByName('P_TYPE_CHECKOUT');
-        Configuration::deleteByName('P_TEST_REQUEST');
-        Configuration::deleteByName('P_STATE_END_TRANSACTION');
-        //Configuration::deleteByName('P_SPLIT_PRIMARY_RECEIVER_FEE');
-        Configuration::deleteByName('p_split_type');
-        Configuration::deleteByName('P_REDUCE_STOCK_PENDING');
-        Configuration::deleteByName('payco', false);
+        // CreditCard_Order::remove();
+        // CreditCard_OrderState::remove();
+        // Configuration::deleteByName('PAYCO_LIVE_MODE');
+        // Configuration::deleteByName('P_TITULO');
+        // Configuration::deleteByName('P_CUST_ID_CLIENTE');
+        // Configuration::deleteByName('P_KEY');
+        // Configuration::deleteByName('PUBLIC_KEY');
+        // Configuration::deleteByName('PRIVATE_KEY');
+        // Configuration::deleteByName('P_TYPE_CHECKOUT');
+        // Configuration::deleteByName('P_TEST_REQUEST');
+        // Configuration::deleteByName('P_STATE_END_TRANSACTION');
+        // //Configuration::deleteByName('P_SPLIT_PRIMARY_RECEIVER_FEE');
+        // Configuration::deleteByName('p_split_type');
+        // Configuration::deleteByName('P_REDUCE_STOCK_PENDING');
+        // Configuration::deleteByName('payco', false);
 
         EpaycoOrder::remove();
         SplitRules::remove();
@@ -204,6 +210,7 @@ class Payco extends PaymentModule
      */
     public function getContent()
     {
+        try {
         /**
          * If values have been submitted in the form, process.
          */
@@ -229,6 +236,16 @@ class Payco extends PaymentModule
         } catch (\Throwable $th) {
             //throw $th;
         }
+        if (is_array($result2) && !empty($result2)) {
+            foreach ($result2 as &$row) {
+                // Si typefeed está vacío, nulo o no existe, establecer 'porcentaje'
+                if (empty($row['typefeed']) || !isset($row['typefeed'])) {
+                    $row['typefeed'] = $this->p_split_type === '1' ? 'fijo' : 'porcentaje';
+                }
+            }
+            // Desenganchar la referencia para evitar problemas
+            unset($row);
+        }
 
         $setup_dir = Context::getContext()->link->getModuleLink('payco', 'setup');
         $update_dir = Context::getContext()->link->getModuleLink('payco', 'update');
@@ -246,6 +263,9 @@ class Payco extends PaymentModule
         $this->_html .= $this->renderForm();
 
         return $this->_html;
+        } catch (\Throwable $th) {
+            throw $th;
+        }
     }
 
     /**
@@ -362,6 +382,24 @@ class Payco extends PaymentModule
 
                         ),
                     ),
+					array(
+                        'type' => 'radio',
+                        'label' => $this->trans('Idioma del checkout', array(), 'Modules.Payment.Admin'),
+                        'name' => "LENGUAJE_PAYCO",
+                        'is_bool' => true,
+                        'values' => array(
+                            array(
+                                'id' => 'LANGUAJE_ES',
+                                'value' => true,
+                                'label' => $this->trans('Español', array(), 'Modules.Payment.Admin'),
+                            ),
+                            array(
+                                'id' => 'LANGUAJE_EN',
+                                'value' => false,
+                                'label' => $this->trans('Ingles', array(), 'Modules.Payment.Admin'),
+                            )
+                        ),
+                    ),
                     /*array(
                         'type' => 'text',
                         'label' => $this->trans('P_SPLIT_PRIMARY_RECEIVER_FEE', array(), 'Modules.Payco.Admin'),
@@ -379,8 +417,13 @@ class Payco extends PaymentModule
                         'values' => array(
                             array(
                                 'id' => 'p_split_type_fijo',
-                                'value' => true,
-                                'label' => $this->trans('01'),
+                                'value' => '1',
+                                'label' => $this->trans('fijo'),
+                            ),
+                            array(
+                                'id' => 'p_split_type_porcentaje',
+                                'value' => '2',
+                                'label' => $this->trans('porcentual'),
                             )
                         ),
                     ),
@@ -466,6 +509,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST' => Tools::getValue('P_TEST_REQUEST', Configuration::get('P_TEST_REQUEST')),
             'P_TYPE_CHECKOUT' => Tools::getValue('P_TYPE_CHECKOUT', Configuration::get('P_TYPE_CHECKOUT')),
             'P_STATE_END_TRANSACTION' => Tools::getValue('P_STATE_END_TRANSACTION', Configuration::get('P_STATE_END_TRANSACTION')),
+			'LENGUAJE_PAYCO' => Tools::getValue('LENGUAJE_PAYCO', Configuration::get('LENGUAJE_PAYCO')),
             //'P_SPLIT_PRIMARY_RECEIVER_FEE' => Tools::getValue('P_SPLIT_PRIMARY_RECEIVER_FEE', Configuration::get('P_SPLIT_PRIMARY_RECEIVER_FEE')),
             'p_split_type' => Tools::getValue('p_split_type', Configuration::get('p_split_type')),
             'P_REDUCE_STOCK_PENDING' => Tools::getValue('P_REDUCE_STOCK_PENDING', Configuration::get('P_REDUCE_STOCK_PENDING'))
@@ -508,6 +552,8 @@ class Payco extends PaymentModule
             Configuration::updateValue('PRIVATE_KEY', Tools::getValue('PRIVATE_KEY'));
             Configuration::updateValue('P_TEST_REQUEST', Tools::getValue('P_TEST_REQUEST'));
             Configuration::updateValue('P_TYPE_CHECKOUT', Tools::getValue('P_TYPE_CHECKOUT'));
+            Configuration::updateValue('LENGUAJE_PAYCO', Tools::getValue('LENGUAJE_PAYCO'));
+            
             Configuration::updateValue('P_TITULO', $p_titulo);
             Configuration::updateValue('P_URL_RESPONSE', '');
             Configuration::updateValue('P_URL_CONFIRMATION', '');
@@ -525,7 +571,7 @@ class Payco extends PaymentModule
     /**
      * Add the CSS & JavaScript files you want to be loaded in the BO.
      */
-    public function hookBackOfficeHeader()
+    public function hookDisplayBackOfficeHeader()
     {
         if (Tools::getValue('module_name') == $this->name) {
             $this->context->controller->addJS($this->_path . 'views/js/back.js');
@@ -589,6 +635,7 @@ class Payco extends PaymentModule
     /**
      * This hook is used to display the order confirmation page.
      */
+
     /**
      * This hook is used to display the order confirmation page.
      */
@@ -614,50 +661,23 @@ class Payco extends PaymentModule
 
         $extra1 = $order->id_cart;
         $extra2 = $order->id;
+        $amount = floatval(number_format($value, 2, '.', ''));
+        $amount_ = number_format($amount, 2, '.', '');
+        $new_amount = number_format(round($amount_, 2), 2, '.', '');
 
-        $sql =
-            '
-			SELECT `id_feature`
-			FROM `' . _DB_PREFIX_ . 'feature_lang`
-			WHERE `name` = ' . '"ePayco receiver"';
-        $feature_id = Db::getInstance()->getValue($sql);
-        $query = 'SELECT DISTINCT psod.`product_id`,      
-                   psod.`product_quantity`,
-                   psod.`total_price_tax_excl` AS "product_price",
-                   psod.`total_price_tax_incl` AS "product_tax",
-                   psvl.`value` as "customer_id",
-                   psps.`feed` as "fee value", 
-                   psps.`typefeed` as "split type"
-            FROM `' . _DB_PREFIX_ . 'order_detail` psod 
-                LEFT JOIN `' . _DB_PREFIX_ . 'feature_product` psfp 
-                    ON (psod.`product_id` = psfp.`id_product`)
-                LEFT JOIN `' . _DB_PREFIX_ . 'feature_value` psv 
-                    ON (psfp.`id_feature_value` = psv.`id_feature_value`) 
-                LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` psvl 
-                    ON (psv.`id_feature_value` = psvl.`id_feature_value`) 
-                LEFT JOIN `' . _DB_PREFIX_ . 'payco_split` psps 
-                    ON (psvl.`value` = psps.`customer_id`) 
-            WHERE psod.id_order = ' . (int) $extra2 . ' AND psps.typefeed !=0 
-            GROUP BY psod.`product_id`,psod.`product_quantity`,psod.`total_price_tax_excl`, 
-                psod.`total_price_tax_incl`,psfp.id_feature_value, psvl.value, psps.`feed`,
-                psps.`typefeed`
-            ';
-        $products_info = Db::getInstance()->executeS($query);
-        $split = false;
-        if (count($products_info) > 0) {
-            $split = true;
-        }
-        //var_dump($products_info);
-        //die();
+        $new_amount = $value;
         $emailComprador = $this->context->customer->email;
-        $valorBaseDevolucion = $order->total_paid_tax_excl;
-        $iva = $value - $valorBaseDevolucion;
+        $valorBaseDevolucion = number_format(round($order->total_paid_tax_excl, 2), 2, '.', '');
+        $tax = $new_amount - $valorBaseDevolucion;
+        $iva = number_format(round($tax, 2), 2, '.', '');
+    
         $cart = $this->context->cart;
-
+        
         $iso = 'CO';
         if ($iva == 0) $valorBaseDevolucion = 0;
 
         $currency = $this->getCurrency();
+        
         $idcurrency = $order->id_currency;
         foreach ($currency as $mon) {
             if ($idcurrency == $mon['id_currency']) $currency = $mon['iso_code'];
@@ -675,41 +695,45 @@ class Payco extends PaymentModule
             $addressdelivery = new Address((int)($cart->id_address_delivery));
 
             if ($this->p_test_request == 1) {
-                $test = "true";
+                $test = true;
             } else {
-                $test = "false";
+                $test = false;
             }
 
             if ($this->p_type_checkout == 1) {
-                $external = "true";
+                $external = "standard";
             } else {
-                $external = "false";
+                $external = "onepage";
             }
 
+            // Usa esto:
+            $productDetails = $this->getCompleteOrderProductDetails($order->id);
+
             $descripcion = '';
-            $productos = Db::getInstance()->executeS('
-			SELECT id_product FROM `' . _DB_PREFIX_ . 'cart_product`
-			WHERE `id_cart` = ' . (int) $extra1);
-            $idproduct_without_split = '';
-            foreach ($productos as $producto) {
-                // Your product id
-                $id_product = (int)$producto['id_product'];
-                // Language id
-                $lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
-                // Load product object
-                $product = new Product($id_product, false, $lang_id);
-                // Validate product object
-                if (Validate::isLoadedObject($product)) {
-                    // Get product name
-                    $descripcion = $descripcion . $product->name . ', ';
-                }
-                $products_ids = array_column($products_info, 'product_id');
-                if (!in_array($id_product, $products_ids)) {
-                    $idproduct_without_split = $idproduct_without_split . $id_product . ', ';
+
+            foreach ($productDetails as $product) {
+                $descripcion .= $product['product_name'] . ', ';
+                
+                // Validar que tenga receiver y fee válidos
+                if (!empty($product['epayco_receiver']) && 
+                    isset($product['total_price_tax_incl']) && 
+                    $product['total_price_tax_incl'] > 0) {
+                    $amountReceiver = number_format($product['total_price_tax_incl'], 2, '.', '');
+                    $taxAmount = number_format($product['tax_amount'], 2, '.', '');
+                    $taxBase = number_format($product['total_price_tax_excl'], 2, '.', '');
+                    $receiversArray[] = [
+                        'merchantId' =>(int)trim($product['epayco_receiver']),
+                        'amount' =>  (float)$amountReceiver,
+                        'tax' => (float)$taxAmount,
+                        'taxBase' => (float)$taxBase,
+                        'fee' => isset($product['epayco_fee']) && $product['epayco_fee'] !== null 
+                            ? (int)trim($product['epayco_fee']) 
+                            : 0
+                    ];
                 }
             }
+            
             $descripcion = substr($descripcion, 0, -2);
-            $idproduct_without_split = substr($idproduct_without_split, 0, -2);
 
             if (!EpaycoOrder::ifExist($order->id)) {
                 EpaycoOrder::create($order->id, 1);
@@ -718,84 +742,6 @@ class Payco extends PaymentModule
             $p_url_response = Context::getContext()->link->getModuleLink('payco', 'response');
             $p_url_confirmation = Context::getContext()->link->getModuleLink('payco', 'confirmation');
             $lang = $this->context->language->language_code;
-
-
-            $vendorsArray = array();
-            foreach ($products_info as $receiver) {
-                if ($receiver['split type'] == "01") {
-                    $receiver_total_tax = floatval($receiver['product_tax']);
-                    $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
-                    $receiver_total = floatval($receiver['product_price']);
-                    $receiver_feed = (floatval($receiver['fee value']));
-                } else {
-                    $porcentaje_fee_value = ((100 - (int)($receiver['feed'])) * $value) / 100;
-                    $receiver_total = $value - $porcentaje_fee_value;
-                    $receiver_feed = (100 - (int)($receiver['feed']));
-                }
-
-                // Asegúrate de que el customer_id esté presente
-                if (isset($receiver['customer_id'])) {
-                    $other = array(
-                        'id' => $receiver['customer_id'],
-                        'total' => strval($receiver_total_tax),
-                        'iva' => strval($receiver_tax),
-                        'base_iva' => strval($receiver_total),
-                        'fee' => strval($receiver_feed)
-                    );
-                    array_push($vendorsArray, $other);
-                } else {
-                    // Agrega un mensaje de advertencia si el customer_id falta
-                    error_log("Falta el customer_id en el receiver: " . json_encode($receiver));
-                }
-            }
-
-            $sql_query = '
-            SELECT DISTINCT psod.`product_id`,      
-                   psod.`product_quantity`,
-                   psod.`total_price_tax_excl` AS "product_price",
-                   psod.`total_price_tax_incl` AS "product_tax"
-            FROM `' . _DB_PREFIX_ . 'order_detail` psod 
-            WHERE psod.id_order = ' . (int)$extra2 . ' 
-            AND psod.product_id IN (' . $idproduct_without_split . ')';
-
-            $vendorsArraysWhithoutSplit = Db::getInstance()->executeS($sql_query);
-
-
-            foreach ($vendorsArraysWhithoutSplit as $receiver) {
-                $receiver_total_tax = floatval($receiver['product_tax']);
-                $receiver_tax = (floatval($receiver['product_tax']) - floatval($receiver['product_price']));
-                $receiver_total = floatval($receiver['product_price']);
-                $receiver_feed = floatval($receiver['product_price']);
-
-
-                if (trim($this->p_cust_id_cliente) !== "") {
-                    $vendorsArray[] = [
-                        'id' => trim($this->p_cust_id_cliente),
-                        'total' => strval($receiver_total_tax),
-                        'iva' => strval($receiver_tax),
-                        'base_iva' => strval($receiver_total),
-                        'fee' => strval(0)
-                    ];
-                } else {
-
-                    error_log("Falta el merchantid en los productos sin split");
-                }
-            }
-
-
-            if (count($vendorsArray) > 0) {
-                $split = true; // Esto se asegurará de que se establezca en true
-            } else {
-                $split = false;
-            }
-
-
-            if ($split) {
-                $new_array = str_replace('"', "'", json_encode($vendorsArray));
-            } else {
-                $new_array = json_encode([]);
-            }
-
 
             if ($lang == "es") {
                 // Si el idioma es español, usa el botón en español
@@ -807,57 +753,198 @@ class Payco extends PaymentModule
                 $lang = "en";
             }
 
-            // // Verificar si hay datos en $vendorsArray
-            // var_dump($vendorsArray); // Verifica el contenido del array
-            // var_dump($new_array); // Verifica el JSON generado
+			if ($this->language_p == 1) {
+                $lenguaje = "es";
+            } else {
+                $lenguaje = "en";
+            }
 
             $myIp = $this->getCustomerIp();
-            $is_split = count($vendorsArray) > 0 ? 'true' : 'false';
-            $this->smarty->assign(array(
-                'isSplit' => $is_split,
-                'split_receivers' => strval($new_array),
-                'this_path_bw' => $this->_path,
-                'p_signature' => $p_signature,
-                'total_to_pay' => Tools::displayPrice($value, $currence, false),
-                'status' => 'ok',
-                'refVenta' => $refVenta,
-                'custemail' => $emailComprador,
-                'extra1' => $extra1,
-                'extra2' => $extra2,
-                'extra3' => $refVenta,
-                'total' => $value,
-                'currency' => $currency,
-                'iso' => $iso,
-                'iva' => $iva,
-                'baseDevolucionIva' => $valorBaseDevolucion,
-                'merchantid' => trim($this->p_cust_id_cliente),
-                'external' => $external,
-                'merchanttest' => $test,
-                'p_key' => trim($this->p_key),
-                'public_key' => trim($this->public_key),
-                'private_key' => trim($this->private_key),
-                'custip' => $_SERVER['REMOTE_ADDR'],
-                'custname' => $this->context->customer->firstname . " " . $this->context->customer->lastname,
-                'p_url_response' => $p_url_response,
-                'p_url_confirmation' => $p_url_confirmation,
-                'p_billing_email' => $this->context->customer->email,
-                'p_billing_name' => $this->context->customer->firstname,
-                'p_billing_last_name' => $this->context->customer->lastname,
-                'p_billing_address' => $addressdelivery->address1 . " " . $addressdelivery->address2,
-                'p_billing_city' => $addressdelivery->city,
-                'p_billing_country' => $addressdelivery->id_state,
-                'p_billing_phone' => "",
-                'lang' => $lang,
-                'descripcion' => $descripcion,
-                'ip' => $myIp
-            ));
+            $is_split = isset($receiversArray) ? (count($receiversArray) > 0 ? 'true' : 'false') : 'false';
+            $tokenResponse = $this->epaycoBerarToken(trim($this->public_key),trim($this->private_key));
+            $token = null;
+            if(isset($tokenResponse['token'])){
+                $token = $tokenResponse['token'];
+            }
+            $date = new DateTimeImmutable();
+            $dataScript  = array(
+                "name"=>substr($this->string_sanitize($descripcion), 0, 30),
+                "description"=>substr($this->string_sanitize($descripcion), 0, 240),
+                "invoice"=>(string)$refVenta,
+                "currency"=>$currency,
+                "amount"=>(float) number_format($new_amount, 3, '.', ''),
+                "taxBase"=>(float)round($valorBaseDevolucion,2),
+                "tax"=>(float)round($iva,2),
+                "taxIco"=>(float)floatval(0),
+                "country"=>$iso,
+                "lang"=>$lenguaje,
+                "confirmation"=>$p_url_confirmation,
+                "response"=>$p_url_response,
+                "billing" => [
+                    "name" =>$this->context->customer->firstname . " " . $this->context->customer->lastname,
+                    "address" => $addressdelivery->address1 . " " . $addressdelivery->address2,
+                    "email" => $this->context->customer->email,
+                ],
+                "autoclick"=> true,
+                //"ip"=>$myIp,
+                "test"=>$test,
+                 "extras" => [
+                    "extra1" => (string)$extra1,
+                    "extra2" => (string)$extra2,
+                    "extra3" => $lenguaje
+                ],
+                "extrasEpayco" => [
+                    "extra5" => "P25"
+                ],
+                "epaycoMethodsDisable" => [],
+                "method"=> "POST",
+                "checkout_version"=>"2",
+                "autoClick" => false,
+            );
+            if($is_split && isset($receiversArray)){
+                $dataScript["splitPayment"] = [
+                    "type" => $this->p_split_type  ==  '1' ? 'amount' : 'percentage',
+                    "receivers" => isset($receiversArray) ? $receiversArray : []
+                ];
+           }
+
+            $checkoutSessionResponse = $this->epaycoSessionCheckout($token, $dataScript);
+            $sessionId = null;
+            if(isset($checkoutSessionResponse['success'])){
+                $sessionId = isset($checkoutSessionResponse["data"]['sessionId']) ? $checkoutSessionResponse["data"]['sessionId'] : null;
+            }else{
+                $this->writeTransactionLog(json_encode($checkoutSessionResponse),'error_log');
+                $messageError = $checkoutSessionResponse['textResponse'];
+                $errorMessage = "";
+                if (isset($checkoutSessionResponse['data']['errors'])) {
+                    $errors = $checkoutSessionResponse['data']['errors'];
+                    if(is_array($errors)){
+                        foreach ($errors as $error) {
+                            $errorMessage = $error['errorMessage'] . "\n";
+                        }
+                    }else{
+                        $errorMessage = $errors. "\n";
+                    }
+                } elseif (isset($epayco_status_session['data']['error']['errores'])) {
+                    $errores = $epayco_status_session['data']['error']['errores'];
+                    foreach ($errores as $error) {
+                        $errorMessage = $error['errorMessage'] . "\n";
+                    }
+                }
+                $processReturnFailMessage = $messageError . " " . $errorMessage;
+                //$processReturnFailMessage =  $errorMessage; 
+            }
+
+            $payload = array(
+                'sessionId' => $sessionId,
+                'type' => $external,
+                'test' => $test,
+            );
+            $checkout =  base64_encode(json_encode($payload));      
+            $this->smarty->assign(
+                array(
+                    'this_path_bw' => $this->_path,
+                    'checkout' => $checkout,
+                    'status' => isset($sessionId) ? 'ok' : 'fail',
+                    'url_button' => $url_button,
+                    'test' => $test ? 'true' : 'false',
+                    'errorMessage' => isset($processReturnFailMessage) ? $processReturnFailMessage : '',
+                )
+            );
+        }else {
+            $this->smarty->assign('status', 'failed');
         }
         // Redirige al checkout
         return $this->display(__FILE__, 'views/templates/hook/payment_return.tpl');
     }
 
-    private function is_blank($var)
+   /**
+     * Obtener valor de una característica específica del producto
+     * @param int $productId
+     * @param string $featureName
+     * @return string|null
+     */
+    private function getProductFeature($productId, $featureName)
     {
+        try {
+        /*$sql = '
+            SELECT fvl.value 
+            FROM `' . _DB_PREFIX_ . 'feature_product` fp
+            LEFT JOIN `' . _DB_PREFIX_ . 'feature_lang` fl 
+                ON fp.id_feature = fl.id_feature 
+                AND fl.id_lang = ' . (int)Context::getContext()->language->id . '
+            LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` fvl 
+                ON fp.id_feature_value = fvl.id_feature_value 
+                AND fvl.id_lang = ' . (int)Context::getContext()->language->id . '
+            WHERE fp.id_product = ' . (int)$productId . '
+            AND fl.name = "' . pSQL($featureName) . '"
+            LIMIT 1';
+        $result = Db::getInstance()->getValue($sql);
+        return $result ? $result : null;
+        */
+        $product = new Product($productId, false, Context::getContext()->language->id);
+        if (!Validate::isLoadedObject($product)) {
+            return null;
+        }
+        
+        $features = $product->getFeatures();
+        
+        foreach ($features as $feature) {
+            $featureObj = new Feature($feature['id_feature'], Context::getContext()->language->id);
+            if ($featureObj->name === $featureName) {
+                $featureValue = new FeatureValue($feature['id_feature_value'], Context::getContext()->language->id);
+                return $featureValue->value;
+            }
+        }
+        return null;
+        } catch (Exception $e) {
+            error_log("Error al obtener característica del producto: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Obtener detalles completos de productos de una orden
+     * @param int $orderId
+     * @return array
+     */
+    private function getCompleteOrderProductDetails($orderId){
+        $order = new Order($orderId);
+        if (!Validate::isLoadedObject($order)) {
+            return [];
+        }
+        
+        $products = [];
+        $orderDetails = $order->getOrderDetailList();
+        
+        foreach ($orderDetails as $detail) {
+            $product = new Product($detail['product_id'], false, Context::getContext()->language->id);
+            // Obtener la característica "ePayco receiver"
+            $epaycoReceiver = $this->getProductFeature($detail['product_id'], 'ePayco receiver');
+            if($epaycoReceiver) {
+				$request = 'SELECT feed FROM `'.SplitRules::$definition['table'].'`WHERE `customer_id` = "'.$epaycoReceiver.'"';
+				/** @var array $result */
+                $fee = Db::getInstance()->getValue($request);
+            }
+            $products[] = [
+                'product_id' => (int)$detail['product_id'],
+                'product_attribute_id' => (int)$detail['product_attribute_id'],
+                'product_name' => $detail['product_name'],
+                'product_quantity' => (int)$detail['product_quantity'],
+                'unit_price_tax_excl' => (float)$detail['unit_price_tax_excl'], // Base sin impuesto
+                'unit_price_tax_incl' => (float)$detail['unit_price_tax_incl'], // Precio con impuesto
+                'tax_amount' => (float)($detail['unit_price_tax_incl'] - $detail['unit_price_tax_excl']), // Impuesto
+                'total_price_tax_excl' => (float)$detail['total_price_tax_excl'], // Total base
+                'total_price_tax_incl' => (float)$detail['total_price_tax_incl'], // Total con impuesto
+                'total_tax_amount' => (float)($detail['total_price_tax_incl'] - $detail['total_price_tax_excl']), // Total impuesto
+                'epayco_receiver' => $epaycoReceiver, // Característica personalizada
+                'epayco_fee' => $fee ?? null
+            ];
+        }
+        return $products;
+    }
+
+    private function is_blank($var){
         return isset($var) || $var == '0' ? ($var == "" ? true : false) : false;
     }
 
@@ -871,6 +958,73 @@ class Payco extends PaymentModule
                 if ($currency_order->id == $currency_module['id_currency'])
                     return true;
         return false;
+    }
+
+    public function epaycoBerarToken($public_key,$private_key)
+    {
+        $publicKey = trim($public_key);
+        $privateKey = trim($private_key);
+        $bearer_token = base64_encode($publicKey . ":" . $privateKey);
+        
+        if (!isset($_COOKIE[$publicKey])) {
+            $token = base64_encode($publicKey . ":" . $privateKey);
+            $bearer_token = $token;
+            $cookie_value = $bearer_token;
+            setcookie($publicKey, $cookie_value, time() + (60 * 14), "/");
+        } else {
+            $bearer_token = $_COOKIE[$publicKey];
+        }
+        
+        $headers = array(
+                'Content-Type: application/json',
+                'Authorization: Basic '.$bearer_token
+        );
+
+        $data = array(
+            'public_key' => $publicKey
+        );
+        $url = 'https://apify.epayco.co/login';
+        //return $this->epayco_realizar_llamada_api("login", [], $headers);
+        $responseData = $this->PostCurl($url, $data, $headers);
+        $jsonData = @json_decode($responseData, true);
+        return $jsonData ;
+    }
+
+    private function epaycoSessionCheckout($bearer_token, $body){
+        $headers = array(
+                'Content-Type: application/json',
+                'Authorization: Bearer '.$bearer_token
+        );
+
+        $url = 'https://apify.epayco.co/payment/session/create';
+        $responseData = $this->PostCurl($url, $body, $headers);
+        $jsonData = @json_decode($responseData, true);
+        return $jsonData;
+    }
+
+
+    private function epaycorefund($bearer_token, $body){
+        $headers = array(
+                'Content-Type: application/json',
+                'Authorization: Bearer '.$bearer_token
+        );
+
+        $url = 'https://apify.epayco.co/transaction/reversion';
+        $responseData = $this->PostCurl($url, $body, $headers);
+        $jsonData = @json_decode($responseData, true);
+        return $jsonData;
+    }
+
+    private function epaycoTransactionData($bearer_token, $body){
+        $headers = array(
+                'Content-Type: application/json',
+                'Authorization: Bearer '.$bearer_token
+        );
+
+        $url = 'https://apify.epayco.co/transaction';
+        $responseData = $this->PostCurl($url, $body, $headers);
+        $jsonData = @json_decode($responseData, true);
+        return $jsonData;
     }
 
     private function getCustomerIp()
@@ -910,13 +1064,6 @@ class Payco extends PaymentModule
             }
         }
 
-        if (isset($_REQUEST["x_ref_payco"])) {
-            $config = Configuration::getMultiple(array('P_CUST_ID_CLIENTE', 'P_KEY', 'PUBLIC_KEY', 'P_TEST_REQUEST'));
-            $public_key = $config["PUBLIC_KEY"];
-            $ref_payco = $_REQUEST["x_ref_payco"];
-            $url = "https://secure.payco.co/restpagos/transaction/response.json?ref_payco=$ref_payco&public_key=" . $public_key;
-            $confirmation = false;
-        }
 
         if (isset($_REQUEST["?ref_payco"]) != "" || isset($_REQUEST["ref_payco"]) || $ref_payco) {
 
@@ -927,9 +1074,8 @@ class Payco extends PaymentModule
             if (isset($_REQUEST["ref_payco"])) {
                 $ref_payco = $_REQUEST["ref_payco"];
             }
-            if ($url == "") {
-                $url = 'https://secure.epayco.co/validation/v1/reference/' . $ref_payco;
-            }
+
+            $url = 'https://secure.epayco.co/validation/v1/reference/' . $ref_payco;
         }
 
 
@@ -941,23 +1087,24 @@ class Payco extends PaymentModule
             $data["ref_payco"] = $ref_payco;
             $data["url"] = $url;
 
-            $this->Acentarpago($data["x_extra1"], $data["x_cod_response"], $data["x_ref_payco"], $data["x_transaction_id"], $data["x_amount"], $data["x_currency_code"], $data["x_signature"], $confirmation, $data["x_test_request"], $data["x_cod_transaction_state"], $ref_payco, $data["x_approval_code"]);
+            $this->Acentarpago($data["x_extra1"], $data["x_cod_response"], $data["x_ref_payco"], $data["x_transaction_id"], $data["x_amount"], $data["x_currency_code"], $data["x_signature"], $confirmation, $data["x_test_request"], $data["x_cod_transaction_state"], $ref_payco, $data["x_approval_code"], $data["x_franchise"]);
             $this->context->smarty->assign($data);
         }
     }
 
-    public function PaymentSuccess($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code)
+    public function PaymentSuccess($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code, $x_franchise)
     {
-        $this->Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code);
+        $this->Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $ref_payco, $x_approval_code, $x_franchise);
     }
 
-
-    private function Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $old_ref_payco, $x_approval_code)
+    private function Acentarpago($extra1, $response, $referencia, $transid, $amount, $currency, $signature, $confirmation, $textMode, $x_cod_transaction_state, $old_ref_payco, $x_approval_code, $x_franchise)
     {
+        $idorder = $extra1;
+
         $config = Configuration::getMultiple(array('P_CUST_ID_CLIENTE', 'P_KEY', 'PUBLIC_KEY', 'P_TEST_REQUEST', 'P_STATE_END_TRANSACTION'));
+
         $x_cust_id_cliente = trim($config['P_CUST_ID_CLIENTE']);
         $x_key = trim($config['P_KEY']);
-        $idorder = $extra1;
         $x_cod_response = (int)$response;
         $x_signature = hash(
             'sha256',
@@ -968,6 +1115,7 @@ class Payco extends PaymentModule
                 . $amount . '^'
                 . $currency
         );
+
 
         $payment = false;
         $state = 'PAYCO_OS_REJECTED';
@@ -989,8 +1137,10 @@ class Payco extends PaymentModule
             $payment = true;
         }
 
-        $order_id = Order::getByCartId((int)$idorder);
+        // $order_id = Order::getByCartId((int)$idorder);
+
         $order = Order::getByCartId((int)$idorder);
+
         $keepOn = false;
         if ($this->p_test_request == 1) {
             $test = "yes";
@@ -1039,26 +1189,52 @@ class Payco extends PaymentModule
         if (!isset($validation)) {
             $validation = false;
         }
-
+     
         if ($x_signature == $signature && $validation) {
             $current_state = $order->current_state;
-            if (!EpaycoOrder::ifStockDiscount($order->id)) {
-                EpaycoOrder::updateStockDiscount($order->id, 1);
+
+            // IMPORTANTE: NO descontar stock automáticamente si es transacción pendiente
+            if ($x_cod_response == 3) {
+                if ($payment && $validacionOrderName) {
+                    $this->writeTransactionLog("WARNING - Orden " . $order->id . ": payment=true pero x_cod_response=3");
+                }
+            } else {
+                // Solo descontar automáticamente si NO es pendiente
+                if ($payment && $validacionOrderName) {
+                    if (!EpaycoOrder::ifStockDiscount($order->id)) {
+                        EpaycoOrder::updateStockDiscount($order->id, 1, $referencia);
+                        error_log("Stock descontado automáticamente por PrestaShop para el pedido " . $order->id);
+                    }
+                }
             }
 
+            if ($confirmation && $x_cod_response == 3) {
+                // Si en el módulo se configuró que se reduzca el stock en transacciones pendientes
+                if (isset($this->p_reduce_stock_pending) && $this->p_reduce_stock_pending == true) {
+                    // Verificamos que el stock no se haya descontado ya para este pedido
+                    if (!EpaycoOrder::ifStockDiscount($order->id)) {
+                        // Marcamos que el stock ya se descontó para evitar doble descuento
+                        EpaycoOrder::updateStockDiscount($order->id, 1, $old_ref_payco);
+                        // Descontamos el stock llamando a RestoreStock con el operador '-' para restar
+                        // $this->RestoreStock($order, '-');
+                        $this->writeTransactionLog("INFO - Orden " . $order->id . ": Stock procesado en confirmación pendiente");
+                    }
+                } else {
+                    $this->RestoreStock($order, '+');
+                }
+            }
+
+
             if ($current_state != Configuration::get($state)) {
+
                 if ($confirmation && !$payment && $x_cod_response != 3 && EpaycoOrder::ifStockDiscount($order->id)) {
                     if (!$validacionOrderName) {
                         $this->RestoreStock($order, '+');
                         $history = new OrderHistory();
                         $history->id_order = (int)$order->id;
                         $history->changeIdOrderState((int)Configuration::get($state), $order, true);
-                    }
-                } else {
-                    if ($confirmation && $x_cod_response == 3 && EpaycoOrder::ifStockDiscount($order->id)) {
-                        if (!$validacionOrderName) {
-                            $this->RestoreStock($order, '-');
-                        }
+                        echo "mensaje de confirmacion 1";
+                        die();
                     }
                 }
 
@@ -1066,8 +1242,6 @@ class Payco extends PaymentModule
                 $history->id_order = (int)$order->id;
 
                 if ($payment && $validacionOrderName) {
-
-
                     $orderStatus = Db::getInstance()->executeS(
                         '
                     SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
@@ -1077,157 +1251,167 @@ class Payco extends PaymentModule
                     if (!empty($orderStatus)) {
                         $orderStatusName = $orderStatus[0]['name'];
 
-
                         if (isset($this->p_state_end_transaction) && (int)$this->p_state_end_transaction > 0) {
-
                             $orderHistory = new OrderHistory();
                             $orderHistory->id_order = (int)$order->id;
                             $orderHistory->changeIdOrderState((int)$this->p_state_end_transaction, (int)$order->id);
                             $orderHistory->add();
+                            echo "mensaje de confirmacion 2";
+                            die();
                         } else {
-
                             $default_order_state = 2;
                             $orderHistory = new OrderHistory();
                             $orderHistory->id_order = (int)$order->id;
                             $orderHistory->changeIdOrderState($default_order_state, (int)$order->id);
                             $orderHistory->add();
-                        }
-
-
-                        $orderStatusEndId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
-                            'SELECT id_order_state FROM `' . _DB_PREFIX_ . 'order_state_lang`
-                        WHERE `name` = "' . pSQL($orderStatusName) . '" AND id_lang = ' . (int)$order->id_lang
-                        );
-
-                        if ($orderStatusEndId) {
-
-                            $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
-                            echo "Cambiado estado de orden en el historial";
-                            die;
-                        } else {
-                            throw new PrestaShopException('No se encontró un estado de orden con el nombre: ' . $orderStatusName);
+                            error_log("Llamando a RestoreStock en condición de pago exitoso para el pedido " . $order->id);
+                            return; // Evitar duplicación de pago
                         }
                     } else {
-                        throw new PrestaShopException('El nombre del estado de la orden no está definido.');
+                        echo "El nombre del estado de la orden no está definido.";
                     }
                 } else {
                     if (in_array($x_cod_response, [2, 4, 6, 9, 10, 11])) {
                         if ($current_state != Configuration::get($state)) {
-
-                            if (!$confirmation || ($x_franchise == "PSE" || !in_array($x_franchise, ["VS", "CR", "AM", "DC", "MC", "PSE"]))) {
-                                $this->RestoreStock($order, '+');
+                            if ($confirmation || in_array($x_franchise, ["VS", "CR", "AM", "DC", "MC", "PSE"])) {
+                                // error_log("Llamando a RestoreStock en condición de rechazo/fallo.");
                             }
                             if (trim($x_cod_response) == 10) {
-                                $this->RestoreStock($order, '-');
+                                $this->RestoreStock($order, '+');
                             }
                             if ($orderStatusPreName == "ePayco Esperando Pago") {
                                 $history->changeIdOrderState((int)Configuration::get($state), $order, true);
+                                // error_log("Llamando a RestoreStock en condición de rechazo/fallo.");
                                 $this->RestoreStock($order, '+');
                             }
                         }
                     }
 
-                    $history->changeIdOrderState((int)Configuration::get($state), $order, true);
+                    // Si es una transacción pendiente, cambiar estado
+                    if ($x_cod_response == 3) {
 
-                    if (!$validacionOrderName) {
-                        if ($orderStatusPreName != "ePayco Pago Rechazado" && $orderStatusPreName != "ePayco Pago Cancelado" && $orderStatusPreName != "ePayco Pago Fallido") {
-                            $keepOn = true;
-                        }
+                        $this->writeTransactionLog("Orden " . $order->id . ": cambiando estado a pendiente...");
+                        $history->changeIdOrderState((int)Configuration::get($state), $order, true);
+                    }
+                }
+            } else {
+                if ($confirmation) {
 
-                        if ($keepOn && $x_cod_response == 1) {
-
-                            $orderStatus = Db::getInstance()->executeS(
-                                '
-                            SELECT name FROM `' . _DB_PREFIX_ . 'order_state_lang`
-                            WHERE `id_order_state` = ' . (int)$config['P_STATE_END_TRANSACTION']
-                            );
-                            $orderStatusName = $orderStatus[0]['name'];
-
-
-                            $orderStatusEndId = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
-                                'SELECT id_order_state FROM `' . _DB_PREFIX_ . 'order_state_lang`
-                            WHERE `name` = "' . pSQL($orderStatusName) . '" AND id_lang = ' . (int)$order->id_lang
-                            );
-
-                            if ($orderStatusEndId) {
-
-                                $history->changeIdOrderState((int)$orderStatusEndId, $order, true);
-                            } else {
-                                throw new PrestaShopException('No se encontró un estado de orden con el nombre: ' . $orderStatusName);
-                            }
-                        }
-                    }else{
-                        echo("Confirmacion aceptada");
-                        die;
+                    $this->writeTransactionLog("Orden en estado (" . $current_state . "), verificando si es pendiente...");
+                    echo "mensaje de confirmacion". $current_state;
+                    // Aunque el estado sea el mismo, si es una confirmación de pendiente, procesar stock
+                    if ($x_cod_response == 3) {
+                        $this->writeTransactionLog("Orden en estado pendiente, procesando stock...");
                     }
                 }
             }
         }
     }
 
-    private function RestoreStock($orderId, $operation)
+    private function RestoreStock($order, $operation)
     {
-
-        $order = new Order($orderId);
-
-
         if ($order && !empty($order->getProductsDetail())) {
             foreach ($order->getProductsDetail() as $product) {
 
                 StockAvailable::updateQuantity(
-                    (int)$product['product_id'],
-                    (int)$product['product_attribute_id'],
-                    $operation . (int)$product['product_quantity'],
-                    (int)$order->id_shop
+                    (int)$product['product_id'],                  // ID del producto
+                    (int)$product['product_attribute_id'],        // ID del atributo del producto (si aplica)
+                    $operation . (int)$product['product_quantity'], // Operación (+ o -) seguido de la cantidad
+                    (int)$order->id_shop                          // ID de la tienda (shop)
                 );
             }
+        } else {
+            error_log("La orden no tiene productos o no se pudo cargar la orden.");
+            //$this->writeCronLog("La orden no tiene productos o no se pudo cargar la orden.");
         }
     }
 
-    private function PostCurl($url)
+    private function PostCurl($url, $body, $headers, $method='POST')
     {
-        if (function_exists('curl_init')) {
-
+        try{
+            if (function_exists('curl_init')) {
+            // Inicializamos cURL
             $ch = curl_init();
             $timeout = 5;
             $user_agent = 'Mozilla/5.0 (Windows NT 6.1; rv:8.0) Gecko/20100101 Firefox/8.0';
 
+            // Configuraciones de cURL
             curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
-            curl_setopt($ch, CURLOPT_HEADER, 0);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-            curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-
+            if(!$body){
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);    // Desactivar verificación de certificado SSL
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);    // Desactivar verificación de host SSL
+                curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);   // Establecer el agente de usuario
+                curl_setopt($ch, CURLOPT_HEADER, 0);                // No incluir encabezados en la salida
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);        // Devolver la respuesta como string
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout); // Tiempo de conexión máximo
+                curl_setopt($ch, CURLOPT_MAXREDIRS, 10);            // Máximo de redirecciones permitidas
+            }else{
+                $jsonData = json_encode($body);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method); 
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData); 
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); // Seguir redirecciones
+                curl_setopt($ch, CURLOPT_TIMEOUT, $timeout); // Tiempo de espera máximo
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Tiempo de espera máximo
+                curl_setopt($ch,CURLOPT_SSLKEYPASSWD, '');
+                curl_setopt($ch,CURLOPT_ENCODING, "");
+                curl_setopt($ch,CURLOPT_MAXREDIRS, 10);
+                curl_setopt($ch,CURLOPT_TIMEOUT, 600);
+                curl_setopt($ch,CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+            }
             $data = curl_exec($ch);
+            if ($data === false) {
+                return array('curl_error' => curl_error($ch), 'curerrno' => curl_errno($ch));
+            }
             curl_close($ch);
 
             return $data;
-        } else {
+            } else {
 
-            $data = @Tools::file_get_contents($url);
-            return $data;
+                $data = @Tools::file_get_contents($url);
+                return $data;
+            }
+        } catch (\Throwable $e) {
+            /* @phpstan-ignore-next-line */
+            var_dump($e);
+            die();
+        } catch (\Exception $e) {
+            var_dump($e);
+            die();
         }
+        
     }
 
     private function StreamContext()
     {
-
         $context = stream_context_create(array(
             'http' => array(
                 'method' => 'POST',
                 'header' => 'Content-Type: application/x-www-form-urlencoded',
                 'protocol_version' => 1.1,
-                'timeout' => 10,
-                'ignore_errors' => true
+                'timeout' => 10,           // Tiempo de espera máximo
+                'ignore_errors' => true     // Ignorar errores HTTP
             )
         ));
 
         return $context;
+    }
+
+    private function string_sanitize($string, $force_lowercase = true, $anal = false)
+    {
+
+        $strip = array("~", "`", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "=", "+", "[", "{", "]", "}", "\\", "|", ";", ":", "\"", "'", "&#8216;", "&#8217;", "&#8220;", "&#8221;", "&#8211;", "&#8212;", "â€”", "â€“", ",", "<", ".", ">", "/", "?");
+        $clean = trim(str_replace($strip, "", strip_tags($string)));
+        $clean = preg_replace('/\s+/', "_", $clean);
+        $clean = ($anal) ? preg_replace("/[^a-zA-Z0-9]/", "", $clean) : $clean;
+        return $clean;
+    }
+
+    private function writeCronLog($message)
+    {
+        $logFile = _PS_MODULE_DIR_.'payco/logs/cron.log';
+        $date = date('Y-m-d H:i:s');
+        //file_put_contents($logFile, "[$date] $message\n", FILE_APPEND);
     }
 
     public function SplitCustomer($customer_id, $fee, $typefeed)
@@ -1250,4 +1434,72 @@ class Payco extends PaymentModule
         var_dump($data);
         die();
     }
+
+    private function writeTransactionLog($message, $logType = 'pending')
+    {
+        $logDir = _PS_MODULE_DIR_ . 'payco/logs';
+
+        // Crear directorio si no existe
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+
+        $logFile = $logDir . '/' . $logType . '_transactions.log';
+        $date = date('Y-m-d H:i:s');
+        file_put_contents($logFile, "[$date] $message\n", FILE_APPEND);
+    }
+
+    #reembolso total
+    public function hookActionOrderStatusPostUpdate($params)
+    {
+        $newStatus = (int) $params['newOrderStatus']->id;
+        $orderId   = (int) $params['id_order'];
+
+        if ($newStatus == (int) Configuration::get('PS_OS_REFUND')) {
+            // Aquí haces el reembolso en la pasarela
+            $sqlQuery  = 'SELECT * FROM `' . _DB_PREFIX_ . 'orders` WHERE `id_order` =  "' . (int)$orderId . '"';
+            $orderStatus = Db::getInstance()->executeS(
+                $sqlQuery
+            );
+            if (empty($orderStatus)) {
+                $this->writeTransactionLog("Pedido ID: $orderId no encontrado para reembolso", 'refund_log');
+                return;
+            }else{
+                $tokenResponse = $this->epaycoBerarToken(trim($this->public_key),trim($this->private_key));
+                $token = null;
+                if(isset($tokenResponse['token'])){
+                    $token = $tokenResponse['token'];
+                }
+                if(empty($token)){
+                    $this->writeTransactionLog("No se pudo obtener token para reembolso del pedido ID: $orderId", 'refund_log');
+                    return;
+                }
+                $body = [
+                    "referenceClient" => $orderStatus[0]['reference'],
+                ];
+                $checkoutSessionResponse = $this->epaycoTransactionData($token, $body);
+                if(isset($checkoutSessionResponse['success']) && $checkoutSessionResponse['success'] == true){
+                    $transactionData = $checkoutSessionResponse['data'];
+                    $refundData = [
+                        "referencePayco" => $transactionData['data'][0]['referencePayco'],
+                    ];
+                    $refundResponse = $this->epaycoRefund($token, $refundData);
+                    $this->writeTransactionLog("Pedido ID: $orderId  ". json_encode($refundResponse), 'refund_log');
+                }
+
+            }
+        }
+    }
+
+
+    #reembolso parcial
+    public function hookActionOrderSlipAdd($params)
+    {
+        $orderSlip = $params['orderSlip'];
+        $orderId   = $orderSlip->id_order;
+        $amount    = $orderSlip->amount;
+    }
+
 }
+
+

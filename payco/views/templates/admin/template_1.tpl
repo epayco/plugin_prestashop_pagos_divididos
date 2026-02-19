@@ -32,18 +32,12 @@
 			<input type="text" name="customer_id" id="customer_id">
 		</div>
 		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
-			<h4>tipo</h4>
-			<select name="typefeed">
-				<option value="01">fijo</option>
-			</select>
-		</div>
-		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
 			<h4>Valor</h4>
 			<input type="text" name="feed" id="feed">
 		</div>
 		<div class="col-xs-6 col-md-4 text-center" style="width: 25% !important;">
 		<br>	
-			<input type="submit" class="btn btn-primary" id="create-account-btn" value="Create an account now!">
+			<input type="submit" class="btn btn-primary" id="create-account-btn" value="Registrar recibidor">
 		</div>
 		</form>
 			<div id="url" hidden="true">{$setup_dir|escape:'html':'UTF-8'}</div>
