@@ -55,7 +55,7 @@ class Payco extends PaymentModule
     public $p_url_confirmation;
     public $p_state_end_transaction;
     public $p_titulo;
-	public $lenguaje;
+	public $language_p;
 
 
     public function __construct()
@@ -89,7 +89,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST',
             'P_TITULO',
             //'P_SPLIT_PRIMARY_RECEIVER_FEE',
-			'LENGUAJE',
+			'LENGUAJE_PAYCO',
             'P_STATE_END_TRANSACTION',
             'p_split_type',
             'P_TYPE_CHECKOUT',
@@ -123,8 +123,8 @@ class Payco extends PaymentModule
             $this->p_reduce_stock_pending = $config['P_REDUCE_STOCK_PENDING'];
         if (isset($config['p_split_type']))
             $this->p_split_type = $config['p_split_type'];
-		if (isset($config['LENGUAJE']))
-            $this->lenguaje = $config['LENGUAJE'];
+		if (isset($config['LENGUAJE_PAYCO']))
+            $this->language_p = $config['LENGUAJE_PAYCO'];
         if (!isset($this->p_cust_id_cliente) or !isset($this->p_key) or !isset($this->public_key))
             $this->warning = $this->l('P_CUST_ID_CLIENTE, P_KEY, PRIVATE_KEY y PUBLIC_KEY deben estar configurados para utilizar este módulo correctamente');
 
@@ -156,7 +156,7 @@ class Payco extends PaymentModule
         Configuration::updateValue('P_TYPE_CHECKOUT', false);
         Configuration::updateValue('P_TEST_REQUEST', false);
         Configuration::updateValue('P_STATE_END_TRANSACTION', '');
-		Configuration::updateValue('LENGUAJE', false);
+		Configuration::updateValue('LENGUAJE_PAYCO', false);
         //Configuration::updateValue('P_SPLIT_PRIMARY_RECEIVER_FEE', '');
         Configuration::updateValue('p_split_type', true);
         Configuration::updateValue('P_REDUCE_STOCK_PENDING', true);
@@ -385,7 +385,7 @@ class Payco extends PaymentModule
 					array(
                         'type' => 'radio',
                         'label' => $this->trans('Idioma del checkout', array(), 'Modules.Payment.Admin'),
-                        'name' => "LENGUAJE",
+                        'name' => "LENGUAJE_PAYCO",
                         'is_bool' => true,
                         'values' => array(
                             array(
@@ -509,7 +509,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST' => Tools::getValue('P_TEST_REQUEST', Configuration::get('P_TEST_REQUEST')),
             'P_TYPE_CHECKOUT' => Tools::getValue('P_TYPE_CHECKOUT', Configuration::get('P_TYPE_CHECKOUT')),
             'P_STATE_END_TRANSACTION' => Tools::getValue('P_STATE_END_TRANSACTION', Configuration::get('P_STATE_END_TRANSACTION')),
-			'LENGUAJE' => Tools::getValue('LENGUAJE', Configuration::get('LENGUAJE')),
+			'LENGUAJE_PAYCO' => Tools::getValue('LENGUAJE_PAYCO', Configuration::get('LENGUAJE_PAYCO')),
             //'P_SPLIT_PRIMARY_RECEIVER_FEE' => Tools::getValue('P_SPLIT_PRIMARY_RECEIVER_FEE', Configuration::get('P_SPLIT_PRIMARY_RECEIVER_FEE')),
             'p_split_type' => Tools::getValue('p_split_type', Configuration::get('p_split_type')),
             'P_REDUCE_STOCK_PENDING' => Tools::getValue('P_REDUCE_STOCK_PENDING', Configuration::get('P_REDUCE_STOCK_PENDING'))
@@ -552,6 +552,8 @@ class Payco extends PaymentModule
             Configuration::updateValue('PRIVATE_KEY', Tools::getValue('PRIVATE_KEY'));
             Configuration::updateValue('P_TEST_REQUEST', Tools::getValue('P_TEST_REQUEST'));
             Configuration::updateValue('P_TYPE_CHECKOUT', Tools::getValue('P_TYPE_CHECKOUT'));
+            Configuration::updateValue('LENGUAJE_PAYCO', Tools::getValue('LENGUAJE_PAYCO'));
+            
             Configuration::updateValue('P_TITULO', $p_titulo);
             Configuration::updateValue('P_URL_RESPONSE', '');
             Configuration::updateValue('P_URL_CONFIRMATION', '');
@@ -751,7 +753,7 @@ class Payco extends PaymentModule
                 $lang = "en";
             }
 
-			if ($this->lenguaje == 1) {
+			if ($this->language_p == 1) {
                 $lenguaje = "es";
             } else {
                 $lenguaje = "en";
@@ -775,7 +777,7 @@ class Payco extends PaymentModule
                 "tax"=>(float)round($iva,2),
                 "taxIco"=>(float)floatval(0),
                 "country"=>$iso,
-                "lang"=>$lang,
+                "lang"=>$lenguaje,
                 "confirmation"=>$p_url_confirmation,
                 "response"=>$p_url_response,
                 "billing" => [
@@ -981,7 +983,7 @@ class Payco extends PaymentModule
         $data = array(
             'public_key' => $publicKey
         );
-        $url = 'https://eks-apify-service.epayco.io/login';
+        $url = 'https://apify.epayco.co/login';
         //return $this->epayco_realizar_llamada_api("login", [], $headers);
         $responseData = $this->PostCurl($url, $data, $headers);
         $jsonData = @json_decode($responseData, true);
@@ -994,7 +996,7 @@ class Payco extends PaymentModule
                 'Authorization: Bearer '.$bearer_token
         );
 
-        $url = 'https://eks-apify-service.epayco.io/payment/session/create';
+        $url = 'https://apify.epayco.co/payment/session/create';
         $responseData = $this->PostCurl($url, $body, $headers);
         $jsonData = @json_decode($responseData, true);
         return $jsonData;
@@ -1007,7 +1009,7 @@ class Payco extends PaymentModule
                 'Authorization: Bearer '.$bearer_token
         );
 
-        $url = 'https://eks-apify-service.epayco.io/transaction/reversion';
+        $url = 'https://apify.epayco.co/transaction/reversion';
         $responseData = $this->PostCurl($url, $body, $headers);
         $jsonData = @json_decode($responseData, true);
         return $jsonData;
@@ -1019,7 +1021,7 @@ class Payco extends PaymentModule
                 'Authorization: Bearer '.$bearer_token
         );
 
-        $url = 'https://eks-apify-service.epayco.io/transaction';
+        $url = 'https://apify.epayco.co/transaction';
         $responseData = $this->PostCurl($url, $body, $headers);
         $jsonData = @json_decode($responseData, true);
         return $jsonData;
@@ -1073,7 +1075,7 @@ class Payco extends PaymentModule
                 $ref_payco = $_REQUEST["ref_payco"];
             }
 
-            $url = 'https://eks-checkout-service.epayco.io/validation/v1/reference/' . $ref_payco;
+            $url = 'https://secure.epayco.co/validation/v1/reference/' . $ref_payco;
         }
 
 
