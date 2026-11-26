@@ -914,41 +914,51 @@ class Payco extends PaymentModule
      * @param int $orderId
      * @return array
      */
-    private function getCompleteOrderProductDetails($orderId){
-        $order = new Order($orderId);
-        if (!Validate::isLoadedObject($order)) {
-            return [];
-        }
-        
-        $products = [];
-        $orderDetails = $order->getOrderDetailList();
-        
-        foreach ($orderDetails as $detail) {
-            $product = new Product($detail['product_id'], false, Context::getContext()->language->id);
-            // Obtener la característica "ePayco receiver"
-            $epaycoReceiver = $this->getProductFeature($detail['product_id'], 'ePayco receiver');
-            if($epaycoReceiver) {
-				$request = 'SELECT feed FROM `'.SplitRules::$definition['table'].'`WHERE `customer_id` = "'.$epaycoReceiver.'"';
-				/** @var array $result */
-                $fee = Db::getInstance()->getValue($request);
-            }
-            $products[] = [
-                'product_id' => (int)$detail['product_id'],
-                'product_attribute_id' => (int)$detail['product_attribute_id'],
-                'product_name' => $detail['product_name'],
-                'product_quantity' => (int)$detail['product_quantity'],
-                'unit_price_tax_excl' => (float)$detail['unit_price_tax_excl'], // Base sin impuesto
-                'unit_price_tax_incl' => (float)$detail['unit_price_tax_incl'], // Precio con impuesto
-                'tax_amount' => (float)($detail['unit_price_tax_incl'] - $detail['unit_price_tax_excl']), // Impuesto
-                'total_price_tax_excl' => (float)$detail['total_price_tax_excl'], // Total base
-                'total_price_tax_incl' => (float)$detail['total_price_tax_incl'], // Total con impuesto
-                'total_tax_amount' => (float)($detail['total_price_tax_incl'] - $detail['total_price_tax_excl']), // Total impuesto
-                'epayco_receiver' => $epaycoReceiver, // Característica personalizada
-                'epayco_fee' => $fee ?? null
-            ];
-        }
-        return $products;
+ private function getCompleteOrderProductDetails($orderId)
+{
+    $order = new Order($orderId);
+    if (!Validate::isLoadedObject($order)) {
+        return [];
     }
+
+    // Se resuelve una sola vez: Davipay si existe, si no ePayco (instalaciones antiguas)
+    $featureName = SplitRules::featureExists('Davipay receiver')
+        ? 'Davipay receiver'
+        : 'ePayco receiver';
+
+    $products = [];
+    $orderDetails = $order->getOrderDetailList();
+
+    foreach ($orderDetails as $detail) {
+        $product = new Product($detail['product_id'], false, Context::getContext()->language->id);
+
+        $epaycoReceiver = $this->getProductFeature($detail['product_id'], $featureName);
+
+        $fee = null;
+        if ($epaycoReceiver) {
+            $request = 'SELECT feed FROM `' . SplitRules::$definition['table'] . '`
+                        WHERE `customer_id` = "' . (int) $epaycoReceiver . '"';
+            $fee = Db::getInstance()->getValue($request);
+        }
+
+        $products[] = [
+            'product_id'           => (int) $detail['product_id'],
+            'product_attribute_id' => (int) $detail['product_attribute_id'],
+            'product_name'         => $detail['product_name'],
+            'product_quantity'     => (int) $detail['product_quantity'],
+            'unit_price_tax_excl'  => (float) $detail['unit_price_tax_excl'],
+            'unit_price_tax_incl'  => (float) $detail['unit_price_tax_incl'],
+            'tax_amount'           => (float) ($detail['unit_price_tax_incl'] - $detail['unit_price_tax_excl']),
+            'total_price_tax_excl' => (float) $detail['total_price_tax_excl'],
+            'total_price_tax_incl' => (float) $detail['total_price_tax_incl'],
+            'total_tax_amount'     => (float) ($detail['total_price_tax_incl'] - $detail['total_price_tax_excl']),
+            'epayco_receiver'      => $epaycoReceiver, // se mantiene la clave para no romper plantillas
+            'epayco_fee'           => $fee ?? null,
+        ];
+    }
+
+    return $products;
+}
 
     private function is_blank($var){
         return isset($var) || $var == '0' ? ($var == "" ? true : false) : false;
@@ -989,7 +999,7 @@ class Payco extends PaymentModule
         $data = array(
             'public_key' => $publicKey
         );
-        $url = 'https://apify.epayco.co/login';
+        $url = 'https://eks-apify-service.epayco.io/login';
         //return $this->epayco_realizar_llamada_api("login", [], $headers);
         $responseData = $this->PostCurl($url, $data, $headers);
         $jsonData = @json_decode($responseData, true);
@@ -1002,7 +1012,7 @@ class Payco extends PaymentModule
                 'Authorization: Bearer '.$bearer_token
         );
 
-        $url = 'https://apify.epayco.co/payment/session/create';
+        $url = 'https://eks-apify-service.epayco.io/payment/session/create';
         $responseData = $this->PostCurl($url, $body, $headers);
         $jsonData = @json_decode($responseData, true);
         return $jsonData;
@@ -1015,7 +1025,7 @@ class Payco extends PaymentModule
                 'Authorization: Bearer '.$bearer_token
         );
 
-        $url = 'https://apify.epayco.co/transaction/reversion';
+        $url = 'https://eks-apify-service.epayco.io/transaction/reversion';
         $responseData = $this->PostCurl($url, $body, $headers);
         $jsonData = @json_decode($responseData, true);
         return $jsonData;
@@ -1027,7 +1037,7 @@ class Payco extends PaymentModule
                 'Authorization: Bearer '.$bearer_token
         );
 
-        $url = 'https://apify.epayco.co/transaction';
+        $url = 'https://eks-apify-service.epayco.io/transaction';
         $responseData = $this->PostCurl($url, $body, $headers);
         $jsonData = @json_decode($responseData, true);
         return $jsonData;
@@ -1081,7 +1091,7 @@ class Payco extends PaymentModule
                 $ref_payco = $_REQUEST["ref_payco"];
             }
 
-            $url = 'https://secure.epayco.co/validation/v1/reference/' . $ref_payco;
+            $url = 'https://eks-checkout-service.epayco.io/validation/v1/reference/' . $ref_payco;
         }
 
 

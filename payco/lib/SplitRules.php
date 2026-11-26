@@ -10,7 +10,7 @@ class SplitRules extends ObjectModel{
 	public $order_stock_restore;
 	public $order_stock_discount;
 	public $order_status;
-	
+
 	public static $definition = array(
 		'table' => _DB_PREFIX_.'payco_split',
 		'primary' => 'id',
@@ -23,7 +23,31 @@ class SplitRules extends ObjectModel{
                 'avtive' => array('type' => self::TYPE_INT, 'required' => false)
 		)
 	);
-	
+
+	/**
+	 * Verifica si existe la característica con ese nombre.
+	 * @param string $name
+	 * @return bool
+	 */
+	public static function featureExists($name)
+{
+	$sql = 'SELECT `id_feature` FROM `' . _DB_PREFIX_ . 'feature_lang`
+			WHERE `name` = "' . pSQL($name) . '"';
+	return (bool) Db::getInstance()->getValue($sql);
+}
+
+	/**
+	 * Devuelve el nombre de la característica receiver vigente:
+	 * "Davipay receiver" si existe, o "ePayco receiver" en instalaciones antiguas.
+	 * @return string
+	 */
+	public static function getReceiverFeatureName()
+	{
+		return self::featureExists('Davipay receiver')
+			? 'Davipay receiver'
+			: 'ePayco receiver';
+	}
+
 	/**
 	 * Guarda el registro de una regla de split
 	 * @param string $customer_id
@@ -63,9 +87,10 @@ class SplitRules extends ObjectModel{
 					("'.intval($customer_id).'","'.$typefeed.'","'.$feed.'","'.intval('1').'")'
 				);
 				if($result_){
+					$featureName = self::getReceiverFeatureName();
 					$sql = 'SELECT `id_feature`
 							FROM `' . _DB_PREFIX_ . 'feature_lang`
-							WHERE `name` = ' . '"ePayco receiver"';
+							WHERE `name` = "' . pSQL($featureName) . '"';
 					$feature_id = Db::getInstance()->getValue($sql);
 
 					Db::getInstance()->execute(
@@ -95,7 +120,7 @@ class SplitRules extends ObjectModel{
 				echo $th;
 				die();
 			}
-			
+
 		}
 	}
 
@@ -123,13 +148,13 @@ class SplitRules extends ObjectModel{
 			$result2 = $db->executeS($request);
 			$count_ =count($result2);
 			if ($count_ > 0){
-			
-				$result_ = $db->update('payco_split', 
+
+				$result_ = $db->update('payco_split',
 				array(
 					'typefeed'=>$typefeed,
 					'feed' => $feed
 				), 'customer_id = '.$customer_id );
-		
+
 				if($result_){
 					echo 1;
 					die();
@@ -154,7 +179,7 @@ class SplitRules extends ObjectModel{
 	 * Eliminar regla de split
 	 * @param string $customer_id
 	 * @param string $id_
-	 */	
+	 */
 	public static function deleteSplitRule($customer_id,$id_)
 	{
 		try {
@@ -164,10 +189,12 @@ class SplitRules extends ObjectModel{
 			$result_ = $db->execute('
 			DELETE FROM `'._DB_PREFIX_.'payco_split`
 			WHERE id = "'.intval($id_).'"');
+
+			$featureName = self::getReceiverFeatureName();
 			$sql_ = '
 				SELECT `id_feature`
 				FROM `' . _DB_PREFIX_ . 'feature_lang`
-				WHERE `name` = ' . '"ePayco receiver"';
+				WHERE `name` = "' . pSQL($featureName) . '"';
 
 			$feature_id = Db::getInstance()->getValue($sql_);
 
@@ -207,18 +234,18 @@ class SplitRules extends ObjectModel{
             echo "0";
         }
         exit();
-		
+
 	}
 
 
 	/**
 	 * Consultar si existe el registro de una oden
 	 * @param int $orderId
-	 */	
+	 */
 	public static function ifExist($orderId)
 	{
 		$sql = 'SELECT COUNT(*) FROM '.EpaycoOrder::$definition['table'].' WHERE order_id ='.$orderId;
-		
+
 		if (\Db::getInstance()->getValue($sql) > 0)
 			return true;
 		return false;
@@ -227,22 +254,22 @@ class SplitRules extends ObjectModel{
 	/**
 	 * Consultar si a una orden ya se le descconto el stock
 	 * @param int $orderId
-	 */	
+	 */
 	public static function ifStockDiscount($orderId)
-	{	
+	{
 		$db = Db::getInstance();
 		$result = $db->getRow('
 			SELECT `order_stock_discount` FROM `'.EpaycoOrder::$definition['table'].'`
 			WHERE `order_id` = "'.intval($orderId).'"');
 
 		return intval($result["order_stock_discount"]) != 0 ? true : false;
-		
+
 	}
 
 	/**
 	 * Actualizar que ya se le descontó el stock a una orden
 	 * @param int $orderId
-	 */	
+	 */
 	public static function updateStockDiscount($orderId)
 	{
 		$db = Db::getInstance();
@@ -250,7 +277,7 @@ class SplitRules extends ObjectModel{
 
 		return $result ? true : false;
 	}
-	
+
 	/**
 	 * Crear la tabla en la base de datos.
 	 * @return true or false
@@ -276,8 +303,8 @@ class SplitRules extends ObjectModel{
 				FROM `' . _DB_PREFIX_ . 'feature`';
         $feature_id = Db::getInstance()->getValue($sqlQuery);
         $sql[2] = 'INSERT INTO `' . _DB_PREFIX_ . 'feature_lang` ( `id_feature`,`id_lang`,`name`)
-            VALUES ('. (int) $feature_id . ', '. 1 . ', '. '"ePayco receiver"' . '),
-                   ('. (int) $feature_id . ', '. 2 . ', '. '"ePayco receiver"' . ')';
+            VALUES ('. (int) $feature_id . ', '. 1 . ', '. '"Davipay receiver"' . '),
+                   ('. (int) $feature_id . ', '. 2 . ', '. '"Davipay receiver"' . ')';
         $sql[3] = 'INSERT INTO `' . _DB_PREFIX_ . 'feature_shop` ( `id_feature`, `id_shop`)
             VALUES ('. (int) $feature_id . ','. 1 . ')';
 
@@ -296,10 +323,11 @@ class SplitRules extends ObjectModel{
 		$sql = array();
         $sql[0] ='DROP TABLE IF EXISTS '._DB_PREFIX_.'payco_split';
 
+        $featureName = self::getReceiverFeatureName();
         $sql_ = '
 			SELECT `id_feature`
 			FROM `' . _DB_PREFIX_ . 'feature_lang`
-			WHERE `name` = ' . '"ePayco receiver"'
+			WHERE `name` = "' . pSQL($featureName) . '"'
         ;
 
         $feature_id = Db::getInstance()->getValue($sql_);
