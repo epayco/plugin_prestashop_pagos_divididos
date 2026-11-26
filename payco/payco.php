@@ -55,7 +55,7 @@ class Payco extends PaymentModule
     public $p_url_confirmation;
     public $p_state_end_transaction;
     public $p_titulo;
-	public $lenguaje;
+	public $language_p;
 
 
     public function __construct()
@@ -63,8 +63,8 @@ class Payco extends PaymentModule
 
         $this->name = 'payco';
         $this->tab = 'payments_gateways';
-        $this->version = '1.8.0.1';
-        $this->author = 'ePayco';
+        $this->version = '2.0.0.0';
+        $this->author = 'Davipay';
         $this->need_instance = 0;
 
         /**
@@ -73,11 +73,14 @@ class Payco extends PaymentModule
         $this->bootstrap = true;
 
         parent::__construct();
-        $this->displayName = $this->l('ePayco pagos divididos');
-        $this->description = $this->l('ePayco: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.');
-        // Definir constante global
-        if (!defined('_EPAYCO_MULTIMEDIA_URL_')) {
-            define('_EPAYCO_MULTIMEDIA_URL_', 'https://multimedia.epayco.co');
+        $this->displayName = $this->l('Davipay pagos divididos');
+        $this->description = $this->l('Davipay: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.');
+        // Definir constantes globales de imágenes
+        if (!defined('DAVIPAY_ROUTE_IMAGES_S3')) {
+            define('DAVIPAY_ROUTE_IMAGES_S3', 'http://multimedia.epayco.io/plugins-sdks/');
+        }
+        if (!defined('CMS_ROUTE_IMAGES_S3')) {
+            define('CMS_ROUTE_IMAGES_S3', 'https://eks-cms-backend-platforms-service.epayco.io/imagenes/');
         }
         $this->confirmUninstall = $this->l('Esta seguro de desistalar este modulo?');
 
@@ -89,7 +92,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST',
             'P_TITULO',
             //'P_SPLIT_PRIMARY_RECEIVER_FEE',
-			'LENGUAJE',
+			'LENGUAJE_PAYCO',
             'P_STATE_END_TRANSACTION',
             'p_split_type',
             'P_TYPE_CHECKOUT',
@@ -123,8 +126,8 @@ class Payco extends PaymentModule
             $this->p_reduce_stock_pending = $config['P_REDUCE_STOCK_PENDING'];
         if (isset($config['p_split_type']))
             $this->p_split_type = $config['p_split_type'];
-		if (isset($config['LENGUAJE']))
-            $this->lenguaje = $config['LENGUAJE'];
+		if (isset($config['LENGUAJE_PAYCO']))
+            $this->language_p = $config['LENGUAJE_PAYCO'];
         if (!isset($this->p_cust_id_cliente) or !isset($this->p_key) or !isset($this->public_key))
             $this->warning = $this->l('P_CUST_ID_CLIENTE, P_KEY, PRIVATE_KEY y PUBLIC_KEY deben estar configurados para utilizar este módulo correctamente');
 
@@ -139,7 +142,7 @@ class Payco extends PaymentModule
     public function install()
     {
         if ((int)Configuration::get('payco') == 1) {
-            //$this->_errors[] = $this->l('El modulo ePayco actualmente ya esta instado');
+            //$this->_errors[] = $this->l('El modulo Davipay actualmente ya esta instado');
             //return false;
         }
 
@@ -148,7 +151,7 @@ class Payco extends PaymentModule
             return false;
         }
 
-        Configuration::updateValue('P_TITULO', 'ePayco: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.');
+        Configuration::updateValue('P_TITULO', 'Davipay: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.');
         Configuration::updateValue('P_CUST_ID_CLIENTE', '');
         Configuration::updateValue('P_KEY', '');
         Configuration::updateValue('PUBLIC_KEY', '');
@@ -156,7 +159,7 @@ class Payco extends PaymentModule
         Configuration::updateValue('P_TYPE_CHECKOUT', false);
         Configuration::updateValue('P_TEST_REQUEST', false);
         Configuration::updateValue('P_STATE_END_TRANSACTION', '');
-		Configuration::updateValue('LENGUAJE', false);
+		Configuration::updateValue('LENGUAJE_PAYCO', false);
         //Configuration::updateValue('P_SPLIT_PRIMARY_RECEIVER_FEE', '');
         Configuration::updateValue('p_split_type', true);
         Configuration::updateValue('P_REDUCE_STOCK_PENDING', true);
@@ -320,7 +323,7 @@ class Payco extends PaymentModule
         $fields_form = array(
             'form' => array(
                 'legend' => array(
-                    'title' => $this->trans('Configuración ePayco', array(), 'Modules.Payco.Admin'),
+                    'title' => $this->trans('Configuración Davipay', array(), 'Modules.Payco.Admin'),
                     'icon' => 'icon-envelope'
                 ),
                 'input' => array(
@@ -346,21 +349,21 @@ class Payco extends PaymentModule
                         'type' => 'text',
                         'label' => $this->trans('P_KEY', array(), 'Modules.Payco.Admin'),
                         'name' => 'P_KEY',
-                        'desc' => $this->trans('Llave para firmar la información enviada y recibida de ePayco', array(), 'Modules.Payco.Admin'),
+                        'desc' => $this->trans('Llave para firmar la información enviada y recibida de Davipay', array(), 'Modules.Payco.Admin'),
                         'required' => true
                     ),
                     array(
                         'type' => 'text',
                         'label' => $this->trans('PUBLIC_KEY', array(), 'Modules.Payco.Admin'),
                         'name' => 'PUBLIC_KEY',
-                        'desc' => $this->trans('LLave para autenticar y consumir los servicios de ePayco.', array(), 'Modules.Payco.Admin'),
+                        'desc' => $this->trans('LLave para autenticar y consumir los servicios de Davipay.', array(), 'Modules.Payco.Admin'),
                         'required' => true
                     ),
                     array(
                         'type' => 'text',
                         'label' => $this->trans('PRIVATE_KEY', array(), 'Modules.Payco.Admin'),
                         'name' => 'PRIVATE_KEY',
-                        'desc' => $this->trans('LLave para autenticar y consumir los servicios de ePayco.', array(), 'Modules.Payco.Admin'),
+                        'desc' => $this->trans('LLave para autenticar y consumir los servicios de Davipay.', array(), 'Modules.Payco.Admin'),
                         'required' => true
                     ),
                     array(
@@ -385,7 +388,7 @@ class Payco extends PaymentModule
 					array(
                         'type' => 'radio',
                         'label' => $this->trans('Idioma del checkout', array(), 'Modules.Payment.Admin'),
-                        'name' => "LENGUAJE",
+                        'name' => "LENGUAJE_PAYCO",
                         'is_bool' => true,
                         'values' => array(
                             array(
@@ -449,7 +452,7 @@ class Payco extends PaymentModule
                     array(
                         'type' => 'radio',
 
-                        'label' => $this->trans('Tipo de checkout ePayco', array(), 'Modules.Payment.Admin'),
+                        'label' => $this->trans('Tipo de checkout Davipay', array(), 'Modules.Payment.Admin'),
 
                         'name' => "P_TYPE_CHECKOUT",
                         'is_bool' => true,
@@ -457,12 +460,12 @@ class Payco extends PaymentModule
                             array(
                                 'id' => 'P_TYPE_CHECKOUT_FALSE',
                                 'value' => false,
-                                'label' => $this->trans('OnPage Checkout (El usuario al pagar se queda en la tienda no hay redirección a ePayco)', array(), 'Modules.Payment.Admin'),
+                                'label' => $this->trans('OnPage Checkout (El usuario al pagar se queda en la tienda no hay redirección a Davipay)', array(), 'Modules.Payment.Admin'),
                             ),
                             array(
                                 'id' => 'P_TYPE_CHECKOUT_TRUE',
                                 'value' => true,
-                                'label' => $this->trans('Estandard Checkout (El usuario al pagar es redireccionado a la pasarela de ePayco)', array(), 'Modules.Payment.Admin'),
+                                'label' => $this->trans('Estandard Checkout (El usuario al pagar es redireccionado a la pasarela de Davipay)', array(), 'Modules.Payment.Admin'),
                             )
                         ),
                     ),
@@ -509,7 +512,7 @@ class Payco extends PaymentModule
             'P_TEST_REQUEST' => Tools::getValue('P_TEST_REQUEST', Configuration::get('P_TEST_REQUEST')),
             'P_TYPE_CHECKOUT' => Tools::getValue('P_TYPE_CHECKOUT', Configuration::get('P_TYPE_CHECKOUT')),
             'P_STATE_END_TRANSACTION' => Tools::getValue('P_STATE_END_TRANSACTION', Configuration::get('P_STATE_END_TRANSACTION')),
-			'LENGUAJE' => Tools::getValue('LENGUAJE', Configuration::get('LENGUAJE')),
+			'LENGUAJE_PAYCO' => Tools::getValue('LENGUAJE_PAYCO', Configuration::get('LENGUAJE_PAYCO')),
             //'P_SPLIT_PRIMARY_RECEIVER_FEE' => Tools::getValue('P_SPLIT_PRIMARY_RECEIVER_FEE', Configuration::get('P_SPLIT_PRIMARY_RECEIVER_FEE')),
             'p_split_type' => Tools::getValue('p_split_type', Configuration::get('p_split_type')),
             'P_REDUCE_STOCK_PENDING' => Tools::getValue('P_REDUCE_STOCK_PENDING', Configuration::get('P_REDUCE_STOCK_PENDING'))
@@ -542,7 +545,7 @@ class Payco extends PaymentModule
             //   $p_url_confirmation=Context::getContext()->link->getModuleLink('payco', 'confirmation');
 
             if (Tools::getValue('P_TITULO') == "") {
-                $p_titulo = "ePayco: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.";
+                $p_titulo = "Davipay: Paga con Tarjeta de crédito/débito nacional e internacional, PSE, Daviplata, Nequi, Paypal, Efectivo, Safetypay y muchos más.";
             } else {
                 $p_titulo = Tools::getValue('P_TITULO');
             }
@@ -552,6 +555,8 @@ class Payco extends PaymentModule
             Configuration::updateValue('PRIVATE_KEY', Tools::getValue('PRIVATE_KEY'));
             Configuration::updateValue('P_TEST_REQUEST', Tools::getValue('P_TEST_REQUEST'));
             Configuration::updateValue('P_TYPE_CHECKOUT', Tools::getValue('P_TYPE_CHECKOUT'));
+            Configuration::updateValue('LENGUAJE_PAYCO', Tools::getValue('LENGUAJE_PAYCO'));
+            
             Configuration::updateValue('P_TITULO', $p_titulo);
             Configuration::updateValue('P_URL_RESPONSE', '');
             Configuration::updateValue('P_URL_CONFIRMATION', '');
@@ -614,13 +619,16 @@ class Payco extends PaymentModule
         if (!$this->checkCurrency($params['cart'])) {
             return;
         }
+        $logo_url_s3 = (defined('DAVIPAY_ROUTE_IMAGES_S3') && trim(DAVIPAY_ROUTE_IMAGES_S3) !== '')
+            ? DAVIPAY_ROUTE_IMAGES_S3 . 'checkout/payment-methods/logo-checkout-payment-methods.svg'
+            : CMS_ROUTE_IMAGES_S3 . 'checkout/payment-methods/logo-checkout-payment-methods.svg';
         $this->context->smarty->assign(array(
             "titulo" => $this->p_titulo,
-            "logo_url" => _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/paymentLogo.svg',
+            "logo_url" => $logo_url_s3,
         ));
         $modalOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
 
-        $modalOption->setCallToActionText($this->l('Pagar con ePayco'))
+        $modalOption->setCallToActionText($this->l('Pagar con Davipay'))
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
             ->setAdditionalInformation($this->context->smarty->fetch('module:payco/views/templates/hook/payment_onpage.tpl'));
 
@@ -743,15 +751,15 @@ class Payco extends PaymentModule
 
             if ($lang == "es") {
                 // Si el idioma es español, usa el botón en español
-                $url_button = _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/Boton-color-espanol.png';
+                $url_button = DAVIPAY_ROUTE_IMAGES_S3 . 'checkout/checkout-button/logo-checkout-payment-button-es.png';
             } else {
                 // Si el idioma no es español, usa el botón en inglés
-                $url_button = _EPAYCO_MULTIMEDIA_URL_ . '/plugins-sdks/Boton-color-Ingles.png';
+                $url_button = DAVIPAY_ROUTE_IMAGES_S3 . 'checkout/checkout-button/logo-checkout-payment-button-ing.png';
                 // Reasignar $lang a "en" (opcional, si es necesario en tu lógica)
                 $lang = "en";
             }
 
-			if ($this->lenguaje == 1) {
+			if ($this->language_p == 1) {
                 $lenguaje = "es";
             } else {
                 $lenguaje = "en";
@@ -775,7 +783,7 @@ class Payco extends PaymentModule
                 "tax"=>(float)round($iva,2),
                 "taxIco"=>(float)floatval(0),
                 "country"=>$iso,
-                "lang"=>$lang,
+                "lang"=>$lenguaje,
                 "confirmation"=>$p_url_confirmation,
                 "response"=>$p_url_response,
                 "billing" => [
@@ -906,41 +914,51 @@ class Payco extends PaymentModule
      * @param int $orderId
      * @return array
      */
-    private function getCompleteOrderProductDetails($orderId){
-        $order = new Order($orderId);
-        if (!Validate::isLoadedObject($order)) {
-            return [];
-        }
-        
-        $products = [];
-        $orderDetails = $order->getOrderDetailList();
-        
-        foreach ($orderDetails as $detail) {
-            $product = new Product($detail['product_id'], false, Context::getContext()->language->id);
-            // Obtener la característica "ePayco receiver"
-            $epaycoReceiver = $this->getProductFeature($detail['product_id'], 'ePayco receiver');
-            if($epaycoReceiver) {
-				$request = 'SELECT feed FROM `'.SplitRules::$definition['table'].'`WHERE `customer_id` = "'.$epaycoReceiver.'"';
-				/** @var array $result */
-                $fee = Db::getInstance()->getValue($request);
-            }
-            $products[] = [
-                'product_id' => (int)$detail['product_id'],
-                'product_attribute_id' => (int)$detail['product_attribute_id'],
-                'product_name' => $detail['product_name'],
-                'product_quantity' => (int)$detail['product_quantity'],
-                'unit_price_tax_excl' => (float)$detail['unit_price_tax_excl'], // Base sin impuesto
-                'unit_price_tax_incl' => (float)$detail['unit_price_tax_incl'], // Precio con impuesto
-                'tax_amount' => (float)($detail['unit_price_tax_incl'] - $detail['unit_price_tax_excl']), // Impuesto
-                'total_price_tax_excl' => (float)$detail['total_price_tax_excl'], // Total base
-                'total_price_tax_incl' => (float)$detail['total_price_tax_incl'], // Total con impuesto
-                'total_tax_amount' => (float)($detail['total_price_tax_incl'] - $detail['total_price_tax_excl']), // Total impuesto
-                'epayco_receiver' => $epaycoReceiver, // Característica personalizada
-                'epayco_fee' => $fee ?? null
-            ];
-        }
-        return $products;
+ private function getCompleteOrderProductDetails($orderId)
+{
+    $order = new Order($orderId);
+    if (!Validate::isLoadedObject($order)) {
+        return [];
     }
+
+    // Se resuelve una sola vez: Davipay si existe, si no ePayco (instalaciones antiguas)
+    $featureName = SplitRules::featureExists('Davipay receiver')
+        ? 'Davipay receiver'
+        : 'ePayco receiver';
+
+    $products = [];
+    $orderDetails = $order->getOrderDetailList();
+
+    foreach ($orderDetails as $detail) {
+        $product = new Product($detail['product_id'], false, Context::getContext()->language->id);
+
+        $epaycoReceiver = $this->getProductFeature($detail['product_id'], $featureName);
+
+        $fee = null;
+        if ($epaycoReceiver) {
+            $request = 'SELECT feed FROM `' . SplitRules::$definition['table'] . '`
+                        WHERE `customer_id` = "' . (int) $epaycoReceiver . '"';
+            $fee = Db::getInstance()->getValue($request);
+        }
+
+        $products[] = [
+            'product_id'           => (int) $detail['product_id'],
+            'product_attribute_id' => (int) $detail['product_attribute_id'],
+            'product_name'         => $detail['product_name'],
+            'product_quantity'     => (int) $detail['product_quantity'],
+            'unit_price_tax_excl'  => (float) $detail['unit_price_tax_excl'],
+            'unit_price_tax_incl'  => (float) $detail['unit_price_tax_incl'],
+            'tax_amount'           => (float) ($detail['unit_price_tax_incl'] - $detail['unit_price_tax_excl']),
+            'total_price_tax_excl' => (float) $detail['total_price_tax_excl'],
+            'total_price_tax_incl' => (float) $detail['total_price_tax_incl'],
+            'total_tax_amount'     => (float) ($detail['total_price_tax_incl'] - $detail['total_price_tax_excl']),
+            'epayco_receiver'      => $epaycoReceiver, // se mantiene la clave para no romper plantillas
+            'epayco_fee'           => $fee ?? null,
+        ];
+    }
+
+    return $products;
+}
 
     private function is_blank($var){
         return isset($var) || $var == '0' ? ($var == "" ? true : false) : false;
@@ -1173,11 +1191,11 @@ class Payco extends PaymentModule
         $orderStatusPreName = $orderStatusPre[0]['name'];
 
         if (
-            $orderStatusPreName == "ePayco Pago Rechazado" ||
-            $orderStatusPreName == "ePayco Pago Cancelado" ||
-            $orderStatusPreName == "ePayco Pago Abandonado" ||
-            $orderStatusPreName == "ePayco Pago Expirado"  ||
-            $orderStatusPreName == "ePayco Pago Fallido"
+            $orderStatusPreName == "Davipay Pago Rechazado" ||
+            $orderStatusPreName == "Davipay Pago Cancelado" ||
+            $orderStatusPreName == "Davipay Pago Abandonado" ||
+            $orderStatusPreName == "Davipay Pago Expirado"  ||
+            $orderStatusPreName == "Davipay Pago Fallido"
         ) {
             $validacionOrderName = false;
         } else {
@@ -1277,7 +1295,10 @@ class Payco extends PaymentModule
                             if (trim($x_cod_response) == 10) {
                                 $this->RestoreStock($order, '+');
                             }
-                            if ($orderStatusPreName == "ePayco Esperando Pago") {
+                            if (
+                                $orderStatusPreName == "Davipay Esperando Pago" ||
+                                $orderStatusPreName == "Davipay Esperando Pago"
+                            ) {
                                 $history->changeIdOrderState((int)Configuration::get($state), $order, true);
                                 // error_log("Llamando a RestoreStock en condición de rechazo/fallo.");
                                 $this->RestoreStock($order, '+');
