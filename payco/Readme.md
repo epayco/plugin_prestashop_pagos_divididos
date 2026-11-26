@@ -48,4 +48,4 @@ Si tienes alguna pregunta o problema, no dudes en ponerte en contacto con nuestr
 
 ## Contacto
 
-Para soporte técnico o consultas, puedes escribir a: desarrollo@epayco.com.
+Para soporte técnico o consultas, puedes escribir a: desarrollo@epayco.com ó desarrolladores@epayco.com

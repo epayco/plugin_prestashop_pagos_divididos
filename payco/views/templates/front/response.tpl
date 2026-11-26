@@ -97,7 +97,7 @@
                                         <img 
                                             src="{constant('DAVIPAY_ROUTE_IMAGES_S3')}checkout/payment-methods/logo-checkout-payment-methods.svg" 
                                             alt="Logo de Davipay" 
-                                            style="max-width: 100%; height: auto; width: 100%; max-height: 730px;" 
+                                            style="max-width: 100%; height: auto; width: 100%; max-height: 730px; margin-top: 10px;" 
                                         >
                                     </div>
                                  </div>

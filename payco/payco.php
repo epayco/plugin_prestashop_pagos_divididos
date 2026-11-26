@@ -142,7 +142,7 @@ class Payco extends PaymentModule
     public function install()
     {
         if ((int)Configuration::get('payco') == 1) {
-            //$this->_errors[] = $this->l('El modulo ePayco actualmente ya esta instado');
+            //$this->_errors[] = $this->l('El modulo Davipay actualmente ya esta instado');
             //return false;
         }
 
@@ -1185,12 +1185,7 @@ class Payco extends PaymentModule
             $orderStatusPreName == "Davipay Pago Cancelado" ||
             $orderStatusPreName == "Davipay Pago Abandonado" ||
             $orderStatusPreName == "Davipay Pago Expirado"  ||
-            $orderStatusPreName == "Davipay Pago Fallido" ||
-            $orderStatusPreName == "ePayco Pago Rechazado" ||
-            $orderStatusPreName == "ePayco Pago Cancelado" ||
-            $orderStatusPreName == "ePayco Pago Abandonado" ||
-            $orderStatusPreName == "ePayco Pago Expirado" ||
-            $orderStatusPreName == "ePayco Pago Fallido"
+            $orderStatusPreName == "Davipay Pago Fallido"
         ) {
             $validacionOrderName = false;
         } else {
@@ -1292,7 +1287,7 @@ class Payco extends PaymentModule
                             }
                             if (
                                 $orderStatusPreName == "Davipay Esperando Pago" ||
-                                $orderStatusPreName == "ePayco Esperando Pago"
+                                $orderStatusPreName == "Davipay Esperando Pago"
                             ) {
                                 $history->changeIdOrderState((int)Configuration::get($state), $order, true);
                                 // error_log("Llamando a RestoreStock en condición de rechazo/fallo.");
